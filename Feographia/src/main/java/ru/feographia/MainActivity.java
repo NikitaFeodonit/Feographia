@@ -21,6 +21,7 @@
 
 package ru.feographia;
 
+import android.widget.TextView;
 import ru.feographia.util.SystemUiHider;
 
 import android.annotation.TargetApi;
@@ -70,6 +71,14 @@ public class MainActivity
     private SystemUiHider mSystemUiHider;
 
 
+    static {
+        System.loadLibrary("test-boost");
+    }
+
+
+    private native String getGPSCoordinates(String rootPath);
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -78,7 +87,9 @@ public class MainActivity
         setContentView(R.layout.activity_main);
 
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
-        final View contentView = findViewById(R.id.fullscreen_content);
+        final TextView contentView = (TextView) findViewById(R.id.fullscreen_content);
+
+        contentView.setText(getGPSCoordinates(getFilesDir().getAbsolutePath()));
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
