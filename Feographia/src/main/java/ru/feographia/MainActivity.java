@@ -72,7 +72,7 @@ public class MainActivity
 
 
     static {
-        System.loadLibrary("test-boost");
+        System.loadLibrary("Feographia_Core_Android");
     }
 
 

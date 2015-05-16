@@ -10,6 +10,7 @@
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/Feographia" />
             <option value="$PROJECT_DIR$/Feographia_Core" />
+            <option value="$PROJECT_DIR$/Feographia_Core_Android" />
           </set>
         </option>
       </GradleProjectSettings>

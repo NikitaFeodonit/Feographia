@@ -1,3 +1,6 @@
 [submodule "Feographia_Core"]
 	path = Feographia_Core
 	url = https://github.com/NikitaFeodonit/Feographia_Core.git
+[submodule "Feographia_Core_Android"]
+	path = Feographia_Core_Android
+	url = https://github.com/NikitaFeodonit/Feographia_Core_Android.git

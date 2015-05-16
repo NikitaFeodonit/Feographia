@@ -4,6 +4,7 @@
     <mapping directory="" vcs="" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/Feographia_Core" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/Feographia_Core_Android" vcs="Git" />
   </component>
 </project>
 

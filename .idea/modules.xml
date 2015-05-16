@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/Feographia/Feographia.iml" filepath="$PROJECT_DIR$/Feographia/Feographia.iml" />
       <module fileurl="file://$PROJECT_DIR$/Feographia_Android.iml" filepath="$PROJECT_DIR$/Feographia_Android.iml" />
       <module fileurl="file://$PROJECT_DIR$/Feographia_Core/Feographia_Core.iml" filepath="$PROJECT_DIR$/Feographia_Core/Feographia_Core.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Feographia_Core_Android/Feographia_Core_Android.iml" filepath="$PROJECT_DIR$/Feographia_Core_Android/Feographia_Core_Android.iml" />
     </modules>
   </component>
 </project>
