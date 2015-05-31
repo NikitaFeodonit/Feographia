@@ -44,6 +44,9 @@ import ru.feographia.util.SystemUiHider;
 public class MainActivity
         extends Activity
 {
+    long mZMQContextPointer;
+
+
     /**
      * Whether or not the system UI should be auto-hidden after {@link #AUTO_HIDE_DELAY_MILLIS}
      * milliseconds.
@@ -77,6 +80,10 @@ public class MainActivity
     protected void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
+
+        FApp app = (FApp) getApplication();
+        mZMQContextPointer = app.getZMQContextPointer();
+
 
         setContentView(R.layout.activity_main);
 
@@ -214,21 +221,25 @@ public class MainActivity
 
     protected void fcoreTestJeroMqReq()
     {
-        ZMQ.Context context = ZMQ.context(1);
-        ZMQ.Socket socket = context.socket(ZMQ.REQ);
-        socket.connect("tcp://127.0.0.1:7575");
+        ZMQ.Context context = ZMQ.contextExisting(mZMQContextPointer);
+
+//        ZMQ.Socket socket = context.socket(ZMQ.REQ);
+//        socket.connect("tcp://127.0.0.1:7575");
+        ZMQ.Socket socket = context.socket(ZMQ.PAIR);
+        socket.connect("inproc://step3");
 
         String request = "Hello";
 //        byte[] reply;
 
         for (int ii = 0; ii < 5000; ++ii) {
-            socket.send(request.getBytes(ZMQ.CHARSET), 0);
+//            socket.send(request.getBytes(ZMQ.CHARSET), 0);
+            socket.send(request.getBytes(), 0);
 //            reply = socket.recv(0);
             socket.recv(0);
         }
 
         socket.close();
-        context.term();
+        // context.term(); // NOT terminate it !!!
     }
 
 
@@ -238,8 +249,8 @@ public class MainActivity
 
         long time = System.currentTimeMillis();
 
-//        fcoreTestJeroMqReq();
-        FCore.fcoreTestZeroMqReq();
+        fcoreTestJeroMqReq();
+//       FCore.fcoreTestZeroMqReq(mZMQContextPointer);
 
         time = System.currentTimeMillis() - time;
 

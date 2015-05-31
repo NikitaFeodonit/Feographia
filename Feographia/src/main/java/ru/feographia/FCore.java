@@ -23,8 +23,8 @@ package ru.feographia;
 
 public class FCore
 {
-    public static native void fcoreRunMainThread();
+    public static native long fcoreRunMainThread();
 
 
-    public static native void fcoreTestZeroMqReq();
+    public static native void fcoreTestZeroMqReq(long cp);
 }

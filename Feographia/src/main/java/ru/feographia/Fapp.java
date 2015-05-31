@@ -27,6 +27,9 @@ import android.app.Application;
 public class FApp
         extends Application
 {
+    long mZMQContextPointer;
+
+
     static {
         System.loadLibrary("fcore");
     }
@@ -40,6 +43,12 @@ public class FApp
 
         super.onCreate();
 
-        FCore.fcoreRunMainThread();
+        mZMQContextPointer = FCore.fcoreRunMainThread();
+    }
+
+
+    public long getZMQContextPointer()
+    {
+        return mZMQContextPointer;
     }
 }
