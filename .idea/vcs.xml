@@ -3,8 +3,6 @@
   <component name="VcsDirectoryMappings">
     <mapping directory="" vcs="" />
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/Feographia_Core" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/Feographia_Core_Android" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/fcore" vcs="Git" />
   </component>
 </project>
-
