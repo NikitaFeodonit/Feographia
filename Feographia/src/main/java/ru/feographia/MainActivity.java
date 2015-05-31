@@ -21,16 +21,18 @@
 
 package ru.feographia;
 
-import android.widget.TextView;
-import ru.feographia.util.SystemUiHider;
-
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
+import org.zeromq.ZMQ;
+import ru.feographia.util.SystemUiHider;
 
 
 /**
@@ -71,14 +73,6 @@ public class MainActivity
     private SystemUiHider mSystemUiHider;
 
 
-    static {
-        System.loadLibrary("Feographia_Core_Android");
-    }
-
-
-    private native String getGPSCoordinates(String rootPath);
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
@@ -89,7 +83,7 @@ public class MainActivity
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
         final TextView contentView = (TextView) findViewById(R.id.fullscreen_content);
 
-        contentView.setText(getGPSCoordinates(getFilesDir().getAbsolutePath()));
+        contentView.setText("test");
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
@@ -207,5 +201,61 @@ public class MainActivity
     {
         mHideHandler.removeCallbacks(mHideRunnable);
         mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        new BackgroundTestTask().execute();
+    }
+
+
+    protected void fcoreTestJeroMqReq()
+    {
+        ZMQ.Context context = ZMQ.context(1);
+        ZMQ.Socket socket = context.socket(ZMQ.REQ);
+        socket.connect("tcp://127.0.0.1:7575");
+
+        String request = "Hello";
+//        byte[] reply;
+
+        for (int ii = 0; ii < 5000; ++ii) {
+            socket.send(request.getBytes(ZMQ.CHARSET), 0);
+//            reply = socket.recv(0);
+            socket.recv(0);
+        }
+
+        socket.close();
+        context.term();
+    }
+
+
+    protected void fcoreTestReq()
+    {
+        Log.d("JNI", "Sending 5000");
+
+        long time = System.currentTimeMillis();
+
+//        fcoreTestJeroMqReq();
+        FCore.fcoreTestZeroMqReq();
+
+        time = System.currentTimeMillis() - time;
+
+        Log.d("JNI", "Received 5000");
+        Log.d("JNI", "time: " + time);
+    }
+
+
+    protected class BackgroundTestTask
+            extends AsyncTask<Void, Void, Void>
+    {
+        @Override
+        protected Void doInBackground(Void... voids)
+        {
+            fcoreTestReq();
+            return null;
+        }
     }
 }

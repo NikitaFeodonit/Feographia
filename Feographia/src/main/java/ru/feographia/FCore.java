@@ -19,31 +19,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-apply plugin: 'com.android.application'
+package ru.feographia;
 
-android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+public class FCore
+{
+    public static native void fcoreRunMainThread();
 
-    defaultConfig {
-        applicationId "ru.feographia"
-        minSdkVersion 9
-        targetSdkVersion 22
-        versionCode 1
-        versionName "0.1"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-        }
-    }
-}
 
-dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile project(':fcore')
-    compile project(':jeromq')
-    compile 'com.android.support:appcompat-v7:22.1.1'
-    compile 'com.android.support:support-v4:22.1.1'
+    public static native void fcoreTestZeroMqReq();
 }

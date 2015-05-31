@@ -19,4 +19,4 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
-include ':Feographia', ':Feographia_Core_Android', ':Feographia_Core'
+include ':Feographia', ':fcore', ':jeromq'
