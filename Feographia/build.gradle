@@ -36,6 +36,11 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            applicationVariants.all { variant ->
+                variant.outputs.each { output ->
+                    output.outputFile = new File(output.outputFile.parent, "feographia_" + defaultConfig.versionName + ".apk")
+                }
+            }
         }
     }
 }
@@ -44,6 +49,7 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile project(':fcore')
     compile project(':jzmq')
+    compile project(':capnproto-java')
     compile 'com.android.support:appcompat-v7:22.1.1'
     compile 'com.android.support:support-v4:22.1.1'
 }
