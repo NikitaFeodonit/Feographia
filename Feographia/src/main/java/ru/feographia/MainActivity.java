@@ -221,11 +221,12 @@ public class MainActivity
 
     protected void fcoreTestJeroMqReq()
     {
-        ZMQ.Context context = ZMQ.contextExisting(mZMQContextPointer);
+//        ZMQ.Context zmqContext = ZMQ.context(1);
+        ZMQ.Context zmqContext = ZMQ.existingContext(mZMQContextPointer);
 
-//        ZMQ.Socket socket = context.socket(ZMQ.REQ);
+//        ZMQ.Socket socket = zmqContext.socket(ZMQ.REQ);
 //        socket.connect("tcp://127.0.0.1:7575");
-        ZMQ.Socket socket = context.socket(ZMQ.PAIR);
+        ZMQ.Socket socket = zmqContext.socket(ZMQ.PAIR);
         socket.connect("inproc://step3");
 
         String request = "Hello";
@@ -239,7 +240,7 @@ public class MainActivity
         }
 
         socket.close();
-        // context.term(); // NOT terminate it !!!
+        // zmqContext.term(); // NOT terminate it with ZMQ.existingContext !!!
     }
 
 
