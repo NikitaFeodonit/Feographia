@@ -19,7 +19,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: 'com.android.application'
+
 
 android {
     compileSdkVersion 22
@@ -43,7 +46,19 @@ android {
             }
         }
     }
+
+
+    task capnpBuild(type: Exec) {
+        workingDir file('src/main/java/ru/feographia/capnproto')
+        commandLine getWinCmd(), getWinCmdArg(), getCapnpCmd()
+    }
+
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn capnpBuild
+    }
 }
+
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
@@ -52,4 +67,29 @@ dependencies {
     compile project(':capnproto-java')
     compile 'com.android.support:appcompat-v7:22.2.0'
     compile 'com.android.support:support-v4:22.2.0'
+}
+
+
+def getWinCmd() {
+    def winCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        winCmd = "cmd"
+    return winCmd
+}
+
+
+def getWinCmdArg() {
+    def winCmdArg = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        winCmdArg = "/c"
+    return winCmdArg
+}
+
+
+def getCapnpCmd() {
+// TODO: for linux
+    def capnpCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        capnpCmd = "..\\..\\..\\..\\..\\..\\..\\fcore\\src\\fcore\\capnproto\\capnp-main.cmd"
+    return capnpCmd
 }

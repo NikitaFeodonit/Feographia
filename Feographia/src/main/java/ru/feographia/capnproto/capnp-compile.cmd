@@ -1,0 +1,1 @@
+..\..\..\..\..\..\..\fcore\prebuild-libs\capnproto-cpp\tools\capnp compile -o../../../../../../../fcore/prebuild-libs/capnproto-cpp/tools/capnpc-java.exe:./ -I../../../../../../../fcore/prebuild-libs/capnproto-cpp/include --src-prefix=../../../../../../../fcore/src/fcore/capnproto ../../../../../../../fcore/src/fcore/capnproto/%1
