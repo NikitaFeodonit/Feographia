@@ -31,8 +31,19 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
+import org.capnproto.ArrayInputStream;
+import org.capnproto.ArrayOutputStream;
+import org.capnproto.MessageBuilder;
+import org.capnproto.MessageReader;
+import org.capnproto.Serialize;
+import org.capnproto.Text;
 import org.zeromq.ZMQ;
+import ru.feographia.capnproto.Test;
 import ru.feographia.util.SystemUiHider;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 
 /**
@@ -221,22 +232,45 @@ public class MainActivity
 
     protected void fcoreTestJeroMqReq()
     {
-//        ZMQ.Context zmqContext = ZMQ.context(1);
         ZMQ.Context zmqContext = ZMQ.existingContext(mZMQContextPointer);
-
-//        ZMQ.Socket socket = zmqContext.socket(ZMQ.REQ);
-//        socket.connect("tcp://127.0.0.1:7575");
         ZMQ.Socket socket = zmqContext.socket(ZMQ.PAIR);
         socket.connect("inproc://step3");
 
-        String request = "Hello";
-//        byte[] reply;
-
         for (int ii = 0; ii < 5000; ++ii) {
-//            socket.send(request.getBytes(ZMQ.CHARSET), 0);
-            socket.send(request.getBytes(), 0);
-//            reply = socket.recv(0);
-            socket.recv(0);
+            MessageBuilder messageBuilder = new MessageBuilder();
+            Test.Request.Builder testReq = messageBuilder.initRoot(Test.Request.factory);
+            testReq.setId(123);
+            testReq.setName("NameMy");
+
+            ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * 8192);
+            byteBuffer.order(ByteOrder.LITTLE_ENDIAN);
+
+            ArrayOutputStream aos = new ArrayOutputStream(byteBuffer);
+            try {
+                Serialize.write(aos, messageBuilder);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            byte[] aosBytes = aos.getWriteBuffer().array();
+            socket.send(aosBytes, 0);
+
+
+            byte[] replyCapnp;
+            replyCapnp = socket.recv(0);
+
+            ArrayInputStream ais = new ArrayInputStream(ByteBuffer.wrap(replyCapnp));
+            try {
+                MessageReader messageReader = Serialize.read(ais);
+                Test.Reply.Reader reply = messageReader.getRoot(Test.Reply.factory);
+                int replyId = reply.getIdReply();
+                Text.Reader textReader = reply.getNameReply();
+                String replyName = textReader.toString();
+//            Log.d("REPLY", "replyId " + replyId);
+//            Log.d("REPLY", "replyName " + replyName);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         socket.close();
@@ -251,7 +285,6 @@ public class MainActivity
         long time = System.currentTimeMillis();
 
         fcoreTestJeroMqReq();
-//       FCore.fcoreTestZeroMqReq(mZMQContextPointer);
 
         time = System.currentTimeMillis() - time;
 

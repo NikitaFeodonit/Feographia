@@ -24,7 +24,4 @@ package ru.feographia;
 public class FCore
 {
     public static native long fcoreRunMainThread();
-
-
-    public static native void fcoreTestZeroMqReq(long zmqContextPointer);
 }
