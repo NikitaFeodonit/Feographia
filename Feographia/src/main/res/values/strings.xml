@@ -23,6 +23,6 @@
 
     <string name="app_name">Feographia_Android</string>
 
-    <string name="dummy_button">Dummy Button</string>
+    <string name="load_file">Load file</string>
 
 </resources>

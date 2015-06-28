@@ -32,15 +32,12 @@
          is needed to present your content, e.g. VideoView, SurfaceView,
          TextureView, etc. -->
 
-    <TextView
-        android:id="@+id/fullscreen_content"
+    <WebView
+        android:id="@+id/web_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:keepScreenOn="true"
-        android:textColor="#33b5e5"
-        android:textStyle="bold"
         android:textSize="20sp"
-        android:gravity="center"
         />
 
     <!-- This FrameLayout insets its children based on system windows using
@@ -63,12 +60,12 @@
             >
 
             <Button
-                android:id="@+id/dummy_button"
+                android:id="@+id/btn_load_file"
                 style="?metaButtonBarButtonStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="@string/dummy_button"
+                android:text="@string/load_file"
                 />
 
         </LinearLayout>
