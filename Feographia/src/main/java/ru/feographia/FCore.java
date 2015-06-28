@@ -21,7 +21,6 @@
 
 package ru.feographia;
 
-import android.util.Log;
 import org.capnproto.ArrayInputStream;
 import org.capnproto.ArrayOutputStream;
 import org.capnproto.MessageBuilder;
@@ -74,33 +73,22 @@ public class FCore
         mZmqFCoreSocket.send(aos.getWriteBuffer().array(), 0);
 
 
-        byte[] replyCapnp;
-        replyCapnp = mZmqFCoreSocket.recv(0);
+        byte[] replyCapnp = mZmqFCoreSocket.recv(0);
 
         ArrayInputStream ais = new ArrayInputStream(ByteBuffer.wrap(replyCapnp));
-        String text = null;
+
         try {
             MessageReader messageReader = Serialize.read(ais);
             FCoreMessages.LoadFileRep.Reader reply = messageReader.getRoot(
                     FCoreMessages.LoadFileRep.factory);
-            text = reply.getText().toString();
-//            Log.d("REPLY", "text: " + text);
+            return reply.getText().toString();
+
         } catch (IOException e) {
             e.printStackTrace();
+            return null;
         }
 
-        // mZmqFCoreSocket.close();
+        // mZmqFCoreSocket.close(); // we do not need close it
         // zmqContext.term(); // NOT terminate it with ZMQ.existingContext !!!
-
-        return text;
-
-
-/*
-        // for get raw bytes of the UTF8 text
-        byte[] bytes = {1, 2};
-        CharBuffer cb = ByteBuffer.wrap(bytes).asCharBuffer();
-        // cb.toString(); // slow, java code
-        return new String(cb.array()); // fast, native arraycopyCharUnchecked()
-*/
     }
 }
