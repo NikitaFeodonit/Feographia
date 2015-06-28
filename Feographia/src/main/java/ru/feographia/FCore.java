@@ -84,7 +84,7 @@ public class FCore
             FCoreMessages.LoadFileRep.Reader reply = messageReader.getRoot(
                     FCoreMessages.LoadFileRep.factory);
             text = reply.getText().toString();
-            Log.d("REPLY", "text: " + text);
+//            Log.d("REPLY", "text: " + text);
         } catch (IOException e) {
             e.printStackTrace();
         }

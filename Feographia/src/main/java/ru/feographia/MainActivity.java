@@ -28,7 +28,9 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.MotionEvent;
 import android.view.View;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 import android.widget.Button;
 import ru.feographia.util.SystemUiHider;
 
@@ -46,7 +48,7 @@ public class MainActivity
      * Whether or not the system UI should be auto-hidden after {@link #AUTO_HIDE_DELAY_MILLIS}
      * milliseconds.
      */
-    private static final boolean AUTO_HIDE = true;
+    private static final boolean AUTO_HIDE = false;
 
     /**
      * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after user interaction
@@ -85,14 +87,33 @@ public class MainActivity
         final WebView webView = (WebView) findViewById(R.id.web_view);
         final Button btnLoadFile = (Button) findViewById(R.id.btn_load_file);
 
+        WebSettings settings = webView.getSettings();
+        settings.setDefaultTextEncodingName("utf-8");
+        webView.getSettings().setJavaScriptEnabled(true);
+        webView.setWebViewClient(
+                new WebViewClient()
+                {
+                    @Override
+                    public boolean shouldOverrideUrlLoading(
+                            WebView view,
+                            String url)
+                    {
+                        view.loadUrl(url);
+                        return true;
+                    }
+                });
+
         btnLoadFile.setOnClickListener(
                 new View.OnClickListener()
                 {
                     @Override
                     public void onClick(View v)
                     {
-                        String path = "/sdcard/Feographia/test_html";
-                        String fileContent = fCore.loadFileUtf16(path + "/00.htm");
+                        String path = "/sdcard/Feographia/test_html/";
+                        String filePath = path + "64-big.htm";
+
+                        String fileContent = fCore.loadFileUtf16(filePath);
+
                         webView.loadDataWithBaseURL(
                                 "file://" + path, fileContent, "text/html", "UTF-16",
                                 "about:config");
