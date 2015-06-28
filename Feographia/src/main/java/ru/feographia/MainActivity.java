@@ -23,27 +23,14 @@ package ru.feographia;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.TextView;
-import org.capnproto.ArrayInputStream;
-import org.capnproto.ArrayOutputStream;
-import org.capnproto.MessageBuilder;
-import org.capnproto.MessageReader;
-import org.capnproto.Serialize;
-import org.capnproto.Text;
-import org.zeromq.ZMQ;
-import ru.feographia.capnproto.Test;
+import android.webkit.WebView;
+import android.widget.Button;
 import ru.feographia.util.SystemUiHider;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 
 /**
@@ -55,9 +42,6 @@ import java.nio.ByteOrder;
 public class MainActivity
         extends Activity
 {
-    long mZMQContextPointer;
-
-
     /**
      * Whether or not the system UI should be auto-hidden after {@link #AUTO_HIDE_DELAY_MILLIS}
      * milliseconds.
@@ -92,20 +76,33 @@ public class MainActivity
     {
         super.onCreate(savedInstanceState);
 
-        FApp app = (FApp) getApplication();
-        mZMQContextPointer = app.getZMQContextPointer();
-
+        final FApp app = (FApp) getApplication();
+        final FCore fCore = app.getFCore();
 
         setContentView(R.layout.activity_main);
 
         final View controlsView = findViewById(R.id.fullscreen_content_controls);
-        final TextView contentView = (TextView) findViewById(R.id.fullscreen_content);
+        final WebView webView = (WebView) findViewById(R.id.web_view);
+        final Button btnLoadFile = (Button) findViewById(R.id.btn_load_file);
 
-        contentView.setText("test");
+        btnLoadFile.setOnClickListener(
+                new View.OnClickListener()
+                {
+                    @Override
+                    public void onClick(View v)
+                    {
+                        String path = "/sdcard/Feographia/test_html";
+                        String fileContent = fCore.loadFileUtf16(path + "/00.htm");
+                        webView.loadDataWithBaseURL(
+                                "file://" + path, fileContent, "text/html", "UTF-16",
+                                "about:config");
+                    }
+                });
+
 
         // Set up an instance of SystemUiHider to control the system UI for
         // this activity.
-        mSystemUiHider = SystemUiHider.getInstance(this, contentView, HIDER_FLAGS);
+        mSystemUiHider = SystemUiHider.getInstance(this, webView, HIDER_FLAGS);
         mSystemUiHider.setup();
         mSystemUiHider.setOnVisibilityChangeListener(
                 new SystemUiHider.OnVisibilityChangeListener()
@@ -149,7 +146,7 @@ public class MainActivity
                 });
 
         // Set up the user interaction to manually show or hide the system UI.
-        contentView.setOnClickListener(
+        webView.setOnClickListener(
                 new View.OnClickListener()
                 {
                     @Override
@@ -166,7 +163,7 @@ public class MainActivity
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
-        findViewById(R.id.dummy_button).setOnTouchListener(mDelayHideTouchListener);
+        btnLoadFile.setOnTouchListener(mDelayHideTouchListener);
     }
 
 
@@ -226,10 +223,11 @@ public class MainActivity
     protected void onResume()
     {
         super.onResume();
-        new BackgroundTestTask().execute();
+//        new BackgroundTestTask().execute();
     }
 
 
+/*
     protected void fcoreTestJeroMqReq()
     {
         ZMQ.Context zmqContext = ZMQ.existingContext(mZMQContextPointer);
@@ -303,4 +301,5 @@ public class MainActivity
             return null;
         }
     }
+*/
 }
