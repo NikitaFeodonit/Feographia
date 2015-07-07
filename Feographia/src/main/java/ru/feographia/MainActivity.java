@@ -34,6 +34,8 @@ import android.webkit.WebViewClient;
 import android.widget.Button;
 import ru.feographia.util.SystemUiHider;
 
+import java.io.IOException;
+
 
 /**
  * An example full-screen activity that shows and hides the system UI (i.e. status bar and
@@ -78,8 +80,8 @@ public class MainActivity
     {
         super.onCreate(savedInstanceState);
 
-        final FApp app = (FApp) getApplication();
-        final FCore fCore = app.getFCore();
+        final Fapp app = (Fapp) getApplication();
+        final Fcore fcore = app.getFcore();
 
         setContentView(R.layout.activity_main);
 
@@ -112,10 +114,15 @@ public class MainActivity
                         String path = "/sdcard/Feographia/test_html/";
                         String filePath = path + "64-big.htm";
 
-                        String fileContent = fCore.loadFileUtf16(filePath);
+                        String fileText = null;
+                        try {
+                            fileText = fcore.getFileTextUtf16(filePath);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
                         webView.loadDataWithBaseURL(
-                                "file://" + path, fileContent, "text/html", "UTF-16",
+                                "file://" + path, fileText, "text/html", "UTF-16",
                                 "about:config");
                     }
                 });
@@ -251,7 +258,7 @@ public class MainActivity
 /*
     protected void fcoreTestJeroMqReq()
     {
-        ZMQ.Context zmqContext = ZMQ.existingContext(mZMQContextPointer);
+        ZMQ.Context zmqContext = ZMQ.existingContext(mZmqContextPointer);
         ZMQ.Socket socket = zmqContext.socket(ZMQ.PAIR);
         socket.connect("inproc://step3");
 
