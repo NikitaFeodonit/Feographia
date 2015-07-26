@@ -122,7 +122,7 @@ public class MainActivity
                         }
 
                         webView.loadDataWithBaseURL(
-                                "file://" + path, fileText, "text/html", "UTF-16",
+                                "file://" + path, fileText, "text/html", "UTF-8",
                                 "about:config");
                     }
                 });
