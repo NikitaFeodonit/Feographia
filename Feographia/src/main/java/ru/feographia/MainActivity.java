@@ -47,7 +47,7 @@ import java.io.IOException;
 public class MainActivity
         extends Activity
 {
-    protected static final String TAG = "MainActivity";
+    protected static final String TAG = MainActivity.class.getName();
 
 
     /**
@@ -118,6 +118,8 @@ public class MainActivity
                         String path = "/sdcard/Feographia/test_html/";
                         String filePath = path + "64-big.htm";
 
+                        long time = System.currentTimeMillis();
+
                         String fileText = null;
                         try {
                             fileText = fcore.getFileTextUtf16(filePath);
@@ -125,6 +127,9 @@ public class MainActivity
                             Log.d(TAG, e.getLocalizedMessage());
                             e.printStackTrace();
                         }
+
+                        time = System.currentTimeMillis() - time;
+                        Log.d(TAG, "time:" + time);
 
                         webView.loadDataWithBaseURL(
                                 "file://" + path, fileText, "text/html", "UTF-8",

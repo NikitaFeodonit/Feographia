@@ -23,6 +23,8 @@ package ru.feographia.text;
 
 public class BibleReference
 {
+    protected static final String TAG = BibleReference.class.getName();
+
     private String mBookID      = "Gen";
     private int    mChapterId   = 1;
     private int    mFromVerseId = 1;

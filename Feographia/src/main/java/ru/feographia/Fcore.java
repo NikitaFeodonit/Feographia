@@ -21,33 +21,17 @@
 
 package ru.feographia;
 
-import android.util.Log;
-import org.capnproto.AnyPointer;
-import org.capnproto.ArrayInputStream;
-import org.capnproto.ArrayOutputStream;
-import org.capnproto.MessageBuilder;
-import org.capnproto.MessageReader;
-import org.capnproto.Serialize;
 import org.zeromq.ZMQ;
-import ru.feographia.capnproto.FcMsg;
 import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 
 
 public final class Fcore
 {
     protected static final String INPROC_FCORE = "inproc://fcore";
 
-    protected static final int MSG_TYPE_GET_CHAPTER_TEXT = 1;
-    protected static final int MSG_TYPE_ERROR            = 9998;
-    protected static final int MSG_TYPE_GET_FILE_TEXT    = 9999;
-
-    protected static final int SEND_BUFFER_SIZE = 8192;
-
-    protected static final String TAG = "Fcore";
+    protected static final String TAG = Fcore.class.getName();
 
 
     protected long        mZmqContextPointer;
@@ -70,72 +54,12 @@ public final class Fcore
     }
 
 
-    protected boolean sendZmqMessage(MessageBuilder messageBuilder)
-            throws IOException
-    {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SEND_BUFFER_SIZE);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        ArrayOutputStream aos = new ArrayOutputStream(buffer);
-        Serialize.write(aos, messageBuilder);
-        return mZmqFCoreSocket.send(aos.getWriteBuffer().array(), 0);
-    }
-
-
-    protected MessageReader receiveZmqMessage()
-            throws IOException
-    {
-        byte[] replyCapnp = mZmqFCoreSocket.recv(0);
-        ArrayInputStream ais = new ArrayInputStream(ByteBuffer.wrap(replyCapnp));
-        return Serialize.read(ais);
-
-        // mZmqFCoreSocket.close(); // we do not need close it
-        // zmqContext.term(); // NOT terminate it with ZMQ.existingContext !!!
-    }
-
-
     public String getChapterText(BibleReference reference)
             throws IOException
     {
-        MessageBuilder cpnQuery = new MessageBuilder();
-        FcMsg.Message.Builder msgQ = cpnQuery.initRoot(FcMsg.Message.factory);
-
-        // set the query type
-        msgQ.setMsgType(MSG_TYPE_GET_CHAPTER_TEXT);
-        AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
-        FcMsg.GetChapterQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetChapterQ.factory);
-
-        // set the query data
-        FcMsg.Reference.Builder ref = dataQ.initReference();
-        ref.setBookId(reference.getBookID());
-        ref.setChapterId(reference.getChapterId());
-        ref.setFromVerseId(reference.getFromVerseId());
-        ref.setToVerseId(reference.getToVerseId());
-
-        // send query and receive reply
-        sendZmqMessage(cpnQuery);
-        MessageReader cpnReply = receiveZmqMessage();
-
-        // get the reply data
-        FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
-
-        if (!msgR.getErrorFlag()) {
-            AnyPointer.Reader dataPtrR = msgR.getDataPointer();
-
-            if (!dataPtrR.isNull()) {
-                FcMsg.GetChapterR.Reader dataR = dataPtrR.getAs(FcMsg.GetChapterR.factory);
-                return dataR.getChapterText().toString();
-
-            } else {
-                Log.d(TAG, "dataPtrR.isNull()");
-                // TODO: work error
-                return null;
-            }
-
-        } else {
-            Log.d(TAG, msgR.getMsgText().toString());
-            // TODO: work error
-            return null;
-        }
+        GetChapterTextMsg msg = new GetChapterTextMsg(mZmqFCoreSocket, reference);
+        msg.msgWorker();
+        return msg.getChapterText();
     }
 
 
@@ -143,40 +67,8 @@ public final class Fcore
     public String getFileTextUtf16(String filePath)
             throws IOException
     {
-        MessageBuilder cpnQuery = new MessageBuilder();
-        FcMsg.Message.Builder msgQ = cpnQuery.initRoot(FcMsg.Message.factory);
-
-        // set the query type
-        msgQ.setMsgType(MSG_TYPE_GET_FILE_TEXT);
-        AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
-        FcMsg.GetFileTextQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetFileTextQ.factory);
-
-        // set the query data
-        dataQ.setFilePath(filePath);
-
-        // send query and receive reply
-        sendZmqMessage(cpnQuery);
-        MessageReader cpnReply = receiveZmqMessage();
-
-        // get the reply data
-        FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
-
-        if (MSG_TYPE_GET_FILE_TEXT != msgR.getMsgType()) {
-            throw new IOException("Bad message type, message type:" + msgR.getMsgType());
-        }
-
-        if (!msgR.getErrorFlag()) {
-            AnyPointer.Reader dataPtrR = msgR.getDataPointer();
-
-            if (!dataPtrR.isNull()) {
-                FcMsg.GetFileTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetFileTextR.factory);
-                return dataR.getFileText().toString();
-
-            } else {
-                throw new IOException("dataPtrR.isNull()");
-            }
-        } else {
-            throw new IOException(msgR.getMsgText().toString());
-        }
+        GetFileTextMsg msg = new GetFileTextMsg(mZmqFCoreSocket, filePath);
+        msg.msgWorker();
+        return msg.getFileText();
     }
 }

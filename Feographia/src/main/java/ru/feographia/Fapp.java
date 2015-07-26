@@ -27,6 +27,8 @@ import android.app.Application;
 public class Fapp
         extends Application
 {
+    protected static final String TAG = Fapp.class.getName();
+
     protected Fcore mFcore;
 
 
