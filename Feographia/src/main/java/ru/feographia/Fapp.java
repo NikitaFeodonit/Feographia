@@ -31,6 +31,8 @@ public class Fapp
 
 
     static {
+        System.loadLibrary("crystax");
+        System.loadLibrary("gnustl_shared");
         System.loadLibrary("fcore");
     }
 
