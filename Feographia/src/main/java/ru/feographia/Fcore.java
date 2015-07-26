@@ -21,6 +21,7 @@
 
 package ru.feographia;
 
+import android.util.Log;
 import org.capnproto.AnyPointer;
 import org.capnproto.ArrayInputStream;
 import org.capnproto.ArrayOutputStream;
@@ -95,15 +96,15 @@ public final class Fcore
             throws IOException
     {
         MessageBuilder cpnQuery = new MessageBuilder();
-        FcMsg.Message.Builder message = cpnQuery.initRoot(FcMsg.Message.factory);
+        FcMsg.Message.Builder msgQ = cpnQuery.initRoot(FcMsg.Message.factory);
 
         // set the query type
-        message.setType(MSG_TYPE_GET_CHAPTER_TEXT);
-        AnyPointer.Builder dataPointer = message.initDataPointer();
-        FcMsg.GetChapterQ.Builder queryData = dataPointer.initAs(FcMsg.GetChapterQ.factory);
+        msgQ.setMsgType(MSG_TYPE_GET_CHAPTER_TEXT);
+        AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
+        FcMsg.GetChapterQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetChapterQ.factory);
 
         // set the query data
-        FcMsg.Reference.Builder ref = queryData.initReference();
+        FcMsg.Reference.Builder ref = dataQ.initReference();
         ref.setBookId(reference.getBookID());
         ref.setChapterId(reference.getChapterId());
         ref.setFromVerseId(reference.getFromVerseId());
@@ -111,16 +112,28 @@ public final class Fcore
 
         // send query and receive reply
         sendZmqMessage(cpnQuery);
-        MessageReader messageReader = receiveZmqMessage();
-
-        FcMsg.GetChapterR.Reader replyData = messageReader.getRoot(FcMsg.GetChapterR.factory);
+        MessageReader cpnReply = receiveZmqMessage();
 
         // get the reply data
-        if (!replyData.getIsError()) {
-            return replyData.getChapterText().toString();
+        FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
+
+        if (!msgR.getErrorFlag()) {
+            AnyPointer.Reader dataPtrR = msgR.getDataPointer();
+
+            if (!dataPtrR.isNull()) {
+                FcMsg.GetChapterR.Reader dataR = dataPtrR.getAs(FcMsg.GetChapterR.factory);
+                return dataR.getChapterText().toString();
+
+            } else {
+                Log.d(TAG, "dataPtrR.isNull()");
+                // TODO: work error
+                return null;
+            }
+
         } else {
+            Log.d(TAG, msgR.getMsgText().toString());
             // TODO: work error
-            return replyData.getChapterText().toString();
+            return null;
         }
     }
 
@@ -130,28 +143,40 @@ public final class Fcore
             throws IOException
     {
         MessageBuilder cpnQuery = new MessageBuilder();
-        FcMsg.Message.Builder message = cpnQuery.initRoot(FcMsg.Message.factory);
+        FcMsg.Message.Builder msgQ = cpnQuery.initRoot(FcMsg.Message.factory);
 
         // set the query type
-        message.setType(MSG_TYPE_GET_FILE_TEXT);
-        AnyPointer.Builder dataPointer = message.initDataPointer();
-        FcMsg.GetFileTextQ.Builder queryData = dataPointer.initAs(FcMsg.GetFileTextQ.factory);
+        msgQ.setMsgType(MSG_TYPE_GET_FILE_TEXT);
+        AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
+        FcMsg.GetFileTextQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetFileTextQ.factory);
 
         // set the query data
-        queryData.setFilePath(filePath);
+        dataQ.setFilePath(filePath);
 
         // send query and receive reply
         sendZmqMessage(cpnQuery);
         MessageReader cpnReply = receiveZmqMessage();
 
-        FcMsg.GetFileTextR.Reader replyData = cpnReply.getRoot(FcMsg.GetFileTextR.factory);
-
         // get the reply data
-        if (!replyData.getIsError()) {
-            return replyData.getFileText().toString();
+        FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
+
+        if (!msgR.getErrorFlag()) {
+            AnyPointer.Reader dataPtrR = msgR.getDataPointer();
+
+            if (!dataPtrR.isNull()) {
+                FcMsg.GetFileTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetFileTextR.factory);
+                return dataR.getFileText().toString();
+
+            } else {
+                Log.d(TAG, "dataPtrR.isNull()");
+                // TODO: work error
+                return null;
+            }
+
         } else {
+            Log.d(TAG, msgR.getMsgText().toString());
             // TODO: work error
-            return replyData.getFileText().toString();
+            return null;
         }
     }
 }
