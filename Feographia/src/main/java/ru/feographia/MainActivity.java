@@ -26,6 +26,7 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -46,6 +47,9 @@ import java.io.IOException;
 public class MainActivity
         extends Activity
 {
+    protected static final String TAG = "MainActivity";
+
+
     /**
      * Whether or not the system UI should be auto-hidden after {@link #AUTO_HIDE_DELAY_MILLIS}
      * milliseconds.
@@ -118,6 +122,7 @@ public class MainActivity
                         try {
                             fileText = fcore.getFileTextUtf16(filePath);
                         } catch (IOException e) {
+                            Log.d(TAG, e.getLocalizedMessage());
                             e.printStackTrace();
                         }
 

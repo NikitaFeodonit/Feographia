@@ -42,6 +42,7 @@ public final class Fcore
     protected static final String INPROC_FCORE = "inproc://fcore";
 
     protected static final int MSG_TYPE_GET_CHAPTER_TEXT = 1;
+    protected static final int MSG_TYPE_ERROR            = 9998;
     protected static final int MSG_TYPE_GET_FILE_TEXT    = 9999;
 
     protected static final int SEND_BUFFER_SIZE = 8192;
@@ -160,6 +161,10 @@ public final class Fcore
         // get the reply data
         FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
 
+        if (MSG_TYPE_GET_FILE_TEXT != msgR.getMsgType()) {
+            throw new IOException("Bad message type, message type:" + msgR.getMsgType());
+        }
+
         if (!msgR.getErrorFlag()) {
             AnyPointer.Reader dataPtrR = msgR.getDataPointer();
 
@@ -168,15 +173,10 @@ public final class Fcore
                 return dataR.getFileText().toString();
 
             } else {
-                Log.d(TAG, "dataPtrR.isNull()");
-                // TODO: work error
-                return null;
+                throw new IOException("dataPtrR.isNull()");
             }
-
         } else {
-            Log.d(TAG, msgR.getMsgText().toString());
-            // TODO: work error
-            return null;
+            throw new IOException(msgR.getMsgText().toString());
         }
     }
 }
