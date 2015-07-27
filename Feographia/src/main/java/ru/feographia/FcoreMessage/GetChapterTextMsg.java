@@ -23,6 +23,7 @@ package ru.feographia.FcoreMessage;
 
 import org.capnproto.AnyPointer;
 import org.zeromq.ZMQ;
+import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
 import ru.feographia.text.BibleReference;
 
@@ -43,7 +44,7 @@ public class GetChapterTextMsg
             BibleReference reference)
     {
         super(zmqFCoreSocket);
-        mMsgType = MSG_TYPE_GET_CHAPTER_TEXT;
+        mMsgType = FcConst.MSG_TYPE_GET_CHAPTER_TEXT;
         mReference = reference;
     }
 

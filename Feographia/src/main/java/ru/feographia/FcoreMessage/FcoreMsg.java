@@ -28,6 +28,7 @@ import org.capnproto.MessageBuilder;
 import org.capnproto.MessageReader;
 import org.capnproto.Serialize;
 import org.zeromq.ZMQ;
+import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
 
 import java.io.IOException;
@@ -37,11 +38,6 @@ import java.nio.ByteOrder;
 
 public abstract class FcoreMsg
 {
-    protected static final int MSG_TYPE_UNKNOWN = 0;
-    protected static final int MSG_TYPE_GET_CHAPTER_TEXT = 1;
-    protected static final int MSG_TYPE_ERROR = 9998;
-    protected static final int MSG_TYPE_GET_FILE_TEXT = 9999;
-
     protected static final int SEND_BUFFER_SIZE = 8192;
 
     protected static final String TAG = FcoreMsg.class.getName();
@@ -56,7 +52,7 @@ public abstract class FcoreMsg
     public FcoreMsg(ZMQ.Socket zmqFCoreSocket)
     {
         mZmqFCoreSocket = zmqFCoreSocket;
-        mMsgType = MSG_TYPE_UNKNOWN;
+        mMsgType = FcConst.MSG_TYPE_UNKNOWN;
     }
 
 

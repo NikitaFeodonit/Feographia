@@ -23,6 +23,7 @@ package ru.feographia.FcoreMessage;
 
 import org.capnproto.AnyPointer;
 import org.zeromq.ZMQ;
+import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
 
 import java.io.IOException;
@@ -40,7 +41,7 @@ public class GetFileTextMsg
     public GetFileTextMsg(ZMQ.Socket zmqFCoreSocket, String filePath)
     {
         super(zmqFCoreSocket);
-        mMsgType = MSG_TYPE_GET_FILE_TEXT;
+        mMsgType = FcConst.MSG_TYPE_GET_FILE_TEXT;
         mFilePath = filePath;
     }
 

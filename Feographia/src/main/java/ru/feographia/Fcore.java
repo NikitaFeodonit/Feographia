@@ -24,6 +24,7 @@ package ru.feographia;
 import org.zeromq.ZMQ;
 import ru.feographia.FcoreMessage.GetChapterTextMsg;
 import ru.feographia.FcoreMessage.GetFileTextMsg;
+import ru.feographia.capnproto.FcConst;
 import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
@@ -31,8 +32,6 @@ import java.io.IOException;
 
 public final class Fcore
 {
-    protected static final String INPROC_FCORE = "inproc://fcore";
-
     protected static final String TAG = Fcore.class.getName();
 
 
@@ -52,7 +51,7 @@ public final class Fcore
         mZmqContext = ZMQ.existingContext(mZmqContextPointer);
 
         mZmqFCoreSocket = mZmqContext.socket(ZMQ.PAIR);
-        mZmqFCoreSocket.connect(INPROC_FCORE);
+        mZmqFCoreSocket.connect(FcConst.INPROC_FCORE.toString());
     }
 
 
