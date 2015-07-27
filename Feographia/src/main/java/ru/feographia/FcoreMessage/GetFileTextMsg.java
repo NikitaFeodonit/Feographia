@@ -19,32 +19,29 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ru.feographia;
+package ru.feographia.FcoreMessage;
 
 import org.capnproto.AnyPointer;
 import org.zeromq.ZMQ;
 import ru.feographia.capnproto.FcMsg;
-import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
 
 
-public class GetChapterTextMsg
+public class GetFileTextMsg
         extends FcoreMsg
 {
-    protected static final String TAG = GetChapterTextMsg.class.getName();
+    protected static final String TAG = GetFileTextMsg.class.getName();
 
-    BibleReference mReference;
-    String mChapterText;
+    protected String mFilePath;
+    protected String mFileText = null;
 
 
-    public GetChapterTextMsg(
-            ZMQ.Socket zmqFCoreSocket,
-            BibleReference reference)
+    public GetFileTextMsg(ZMQ.Socket zmqFCoreSocket, String filePath)
     {
         super(zmqFCoreSocket);
-        mMsgType = MSG_TYPE_GET_CHAPTER_TEXT;
-        mReference = reference;
+        mMsgType = MSG_TYPE_GET_FILE_TEXT;
+        mFilePath = filePath;
     }
 
 
@@ -52,13 +49,8 @@ public class GetChapterTextMsg
     protected void setDataQ(AnyPointer.Builder dataPtrQ)
     {
         // set the query data
-        FcMsg.GetChapterQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetChapterQ.factory);
-        FcMsg.Reference.Builder ref = dataQ.initReference();
-
-        ref.setBookId(mReference.getBookID());
-        ref.setChapterId(mReference.getChapterId());
-        ref.setFromVerseId(mReference.getFromVerseId());
-        ref.setToVerseId(mReference.getToVerseId());
+        FcMsg.GetFileTextQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetFileTextQ.factory);
+        dataQ.setFilePath(mFilePath);
     }
 
 
@@ -68,14 +60,18 @@ public class GetChapterTextMsg
     {
         // get the reply data
         AnyPointer.Reader dataPtrR = super.msgWorker();
-        FcMsg.GetChapterR.Reader dataR = dataPtrR.getAs(FcMsg.GetChapterR.factory);
-        mChapterText = dataR.getChapterText().toString();
+        FcMsg.GetFileTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetFileTextR.factory);
+        mFileText = dataR.getFileText().toString();
         return dataPtrR;
     }
 
 
-    public String getChapterText()
+    public String getFileText()
+            throws IOException
     {
-        return mChapterText;
+        if (null == mFileText) {
+            msgWorker();
+        }
+        return mFileText;
     }
 }

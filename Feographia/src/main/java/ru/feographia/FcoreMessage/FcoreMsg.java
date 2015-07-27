@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ru.feographia;
+package ru.feographia.FcoreMessage;
 
 import org.capnproto.AnyPointer;
 import org.capnproto.ArrayInputStream;

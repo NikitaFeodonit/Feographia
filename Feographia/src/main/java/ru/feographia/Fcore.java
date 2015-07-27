@@ -22,6 +22,8 @@
 package ru.feographia;
 
 import org.zeromq.ZMQ;
+import ru.feographia.FcoreMessage.GetChapterTextMsg;
+import ru.feographia.FcoreMessage.GetFileTextMsg;
 import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
@@ -57,9 +59,7 @@ public final class Fcore
     public String getChapterText(BibleReference reference)
             throws IOException
     {
-        GetChapterTextMsg msg = new GetChapterTextMsg(mZmqFCoreSocket, reference);
-        msg.msgWorker();
-        return msg.getChapterText();
+        return new GetChapterTextMsg(mZmqFCoreSocket, reference).getChapterText();
     }
 
 
@@ -67,8 +67,6 @@ public final class Fcore
     public String getFileTextUtf16(String filePath)
             throws IOException
     {
-        GetFileTextMsg msg = new GetFileTextMsg(mZmqFCoreSocket, filePath);
-        msg.msgWorker();
-        return msg.getFileText();
+        return new GetFileTextMsg(mZmqFCoreSocket, filePath).getFileText();
     }
 }
