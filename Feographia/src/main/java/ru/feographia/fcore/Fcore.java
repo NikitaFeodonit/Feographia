@@ -19,11 +19,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ru.feographia;
+package ru.feographia.fcore;
 
 import org.zeromq.ZMQ;
-import ru.feographia.FcoreMessage.GetChapterTextMsg;
-import ru.feographia.FcoreMessage.GetFileTextMsg;
+import ru.feographia.fcore.message.GetChapterTextMsg;
+import ru.feographia.fcore.message.GetFileTextMsg;
 import ru.feographia.capnproto.FcConst;
 import ru.feographia.text.BibleReference;
 

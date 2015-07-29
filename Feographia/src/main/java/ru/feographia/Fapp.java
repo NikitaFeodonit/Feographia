@@ -22,6 +22,7 @@
 package ru.feographia;
 
 import android.app.Application;
+import ru.feographia.fcore.Fcore;
 
 
 public class Fapp

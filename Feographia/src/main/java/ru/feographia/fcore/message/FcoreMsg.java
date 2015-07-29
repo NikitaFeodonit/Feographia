@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ru.feographia.FcoreMessage;
+package ru.feographia.fcore.message;
 
 import org.capnproto.AnyPointer;
 import org.capnproto.ArrayInputStream;
@@ -44,9 +44,6 @@ public abstract class FcoreMsg
 
     protected ZMQ.Socket mZmqFCoreSocket;
     protected int        mMsgType;
-
-
-    protected abstract void setDataQ(AnyPointer.Builder dataPtrQ);
 
 
     public FcoreMsg(ZMQ.Socket zmqFCoreSocket)
@@ -119,4 +116,7 @@ public abstract class FcoreMsg
         // mZmqFCoreSocket.close(); // we do not need close it
         // zmqContext.term(); // NOT terminate it with ZMQ.existingContext !!!
     }
+
+
+    protected abstract void setDataQ(AnyPointer.Builder dataPtrQ);
 }

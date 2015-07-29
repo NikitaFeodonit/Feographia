@@ -19,7 +19,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package ru.feographia.FcoreMessage;
+package ru.feographia.fcore.message;
 
 import org.capnproto.AnyPointer;
 import org.zeromq.ZMQ;

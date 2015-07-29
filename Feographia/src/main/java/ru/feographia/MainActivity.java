@@ -33,6 +33,7 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import ru.feographia.fcore.Fcore;
 import ru.feographia.util.SystemUiHider;
 
 import java.io.IOException;
