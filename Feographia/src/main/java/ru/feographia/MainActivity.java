@@ -26,7 +26,6 @@ import android.app.Activity;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -34,6 +33,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import ru.feographia.fcore.Fcore;
+import ru.feographia.util.Flog;
 import ru.feographia.util.SystemUiHider;
 
 import java.io.IOException;
@@ -125,12 +125,12 @@ public class MainActivity
                         try {
                             fileText = fcore.getFileTextUtf16(filePath);
                         } catch (IOException e) {
-                            Log.d(TAG, e.getLocalizedMessage());
+                            Flog.d(TAG, e.getLocalizedMessage());
                             e.printStackTrace();
                         }
 
                         time = System.currentTimeMillis() - time;
-                        Log.d(TAG, "-Fcore-\n\n\ntime:" + time);
+                        Flog.d(TAG, "time: " + time);
 
                         webView.loadDataWithBaseURL(
                                 "file://" + path, fileText, "text/html", "UTF-8", "about:config");
