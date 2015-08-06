@@ -23,10 +23,15 @@ package ru.feographia.util;
 
 import android.util.Log;
 
+import static android.util.Log.*;
 
 public class Flog
 {
     public static int d(String tag, String msg) {
-        return Log.d(tag, "-Fg-\n\n\nFA: " + msg);
+        return Log.println(DEBUG, tag, "-Fg-\n\n\nFA: " + msg);
+    }
+
+    public static int i(String tag, String msg) {
+        return Log.println(INFO, tag, "-Fg-\n\n\nFA: " + msg);
     }
 }
