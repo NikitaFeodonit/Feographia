@@ -130,7 +130,7 @@ public class MainActivity
                         }
 
                         time = System.currentTimeMillis() - time;
-                        Log.d(TAG, "time:" + time);
+                        Log.d(TAG, "-Fcore-\n\n\ntime:" + time);
 
                         webView.loadDataWithBaseURL(
                                 "file://" + path, fileText, "text/html", "UTF-8", "about:config");
