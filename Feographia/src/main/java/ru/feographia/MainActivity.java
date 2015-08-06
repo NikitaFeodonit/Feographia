@@ -133,8 +133,7 @@ public class MainActivity
                         Log.d(TAG, "time:" + time);
 
                         webView.loadDataWithBaseURL(
-                                "file://" + path, fileText, "text/html", "UTF-8",
-                                "about:config");
+                                "file://" + path, fileText, "text/html", "UTF-8", "about:config");
                     }
                 });
 
