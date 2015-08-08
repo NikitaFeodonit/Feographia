@@ -27,11 +27,14 @@ import static android.util.Log.*;
 
 public class Flog
 {
+    private static final String mLogPrefix = "-Fg-\n\n\nFA: ";
+
+
     public static int d(String tag, String msg) {
-        return Log.println(DEBUG, tag, "-Fg-\n\n\nFA: " + msg);
+        return Log.println(DEBUG, tag, mLogPrefix + msg);
     }
 
     public static int i(String tag, String msg) {
-        return Log.println(INFO, tag, "-Fg-\n\n\nFA: " + msg);
+        return Log.println(INFO, tag, mLogPrefix + msg);
     }
 }
