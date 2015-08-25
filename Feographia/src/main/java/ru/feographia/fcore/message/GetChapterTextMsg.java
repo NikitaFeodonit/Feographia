@@ -35,8 +35,8 @@ public class GetChapterTextMsg
 {
     protected static final String TAG = GetChapterTextMsg.class.getName();
 
-    BibleReference mReference;
-    String mChapterText = null;
+    protected BibleReference mReference;
+    protected String mChapterText = null;
 
 
     public GetChapterTextMsg(

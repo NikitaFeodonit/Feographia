@@ -38,7 +38,9 @@ public class GetFileTextMsg
     protected String mFileText = null;
 
 
-    public GetFileTextMsg(ZMQ.Socket zmqFCoreSocket, String filePath)
+    public GetFileTextMsg(
+            ZMQ.Socket zmqFCoreSocket,
+            String filePath)
     {
         super(zmqFCoreSocket);
         mMsgType = FcConst.MSG_TYPE_GET_FILE_TEXT;

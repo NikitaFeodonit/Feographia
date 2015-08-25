@@ -21,6 +21,7 @@
 
 package ru.feographia;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.os.Build;
@@ -80,6 +81,7 @@ public class MainActivity
     private SystemUiHider mSystemUiHider;
 
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState)
     {
