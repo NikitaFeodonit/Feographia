@@ -1,0 +1,12 @@
+https://github.com/SRombauts/SQLiteCpp
+Coding Style Guidelines
+
+The source code use the CamelCase naming style variant where :
+
+    type names (class, struct, typedef, enums...) begins with a capital letter
+    files (.cpp/.h) are named like the class they contains
+    function and variable names begins with a lower case letter
+    member variables begins with a 'm', function arguments begins with a 'a', boolean with a 'b', pointers with a 'p'
+    each file, class, method and member variable is documented using Doxygen tags See also http://www.appinf.com/download/CppCodingStyleGuide.pdf for good guidelines
+
+CppCodingStyleGuide.pdf is here in root.
