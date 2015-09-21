@@ -134,6 +134,10 @@ public class MainActivity
                         time = System.currentTimeMillis() - time;
                         Flog.d(TAG, "time: " + time);
 
+                        // TODO: use widgets from
+                        // android.support.v4.widget
+                        // android.support.v7.widget
+
                         webView.loadDataWithBaseURL(
                                 "file://" + path, fileText, "text/html", "UTF-8", "about:config");
                     }
