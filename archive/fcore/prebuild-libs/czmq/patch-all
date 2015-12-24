@@ -1,0 +1,11 @@
+diff -Naur czmq-old/include/czmq_prelude.h czmq-new/include/czmq_prelude.h
+--- czmq-old/include/czmq_prelude.h	2015-06-06 21:42:14.573116000 +0200
++++ czmq-new/include/czmq_prelude.h	2015-06-06 22:44:13.990946100 +0200
+@@ -494,6 +494,7 @@
+     typedef unsigned int uint;
+ #   endif
+ #endif
++    typedef unsigned int uint;
+ 
+ //- Non-portable declaration specifiers -------------------------------------
+ 

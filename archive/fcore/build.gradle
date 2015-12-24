@@ -1,0 +1,153 @@
+/*
+ * Project:  Feographia
+ * Purpose:  Mobile application to work with the biblical text
+ * Authors:  NikitaFeodonit, nfeodonit@yandex.com
+ * ****************************************************************************
+ * Copyright (C) 2015 NikitaFeodonit
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.library'
+
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.1"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 23
+        versionCode 1
+        versionName "0.1"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'android-nkd/proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+
+
+// default project structure
+//    sourceSets.main.manifest.srcFile 'main/AndroidManifest.xml'
+//
+//    sourceSets.main.java.srcDirs = ['src/main/java']
+//    sourceSets.main.res.srcDirs = ['src/main/res'] // android resources
+//    sourceSets.main.assets.srcDirs = ['src/main/assets']
+//
+//    sourceSets.main.jni.srcDirs = ['src/main/jni']
+//    sourceSets.main.jniLibs.srcDirs = ['src/main/libs']
+//
+//    sourceSets.main.resources.srcDirs = ['src/resources'] // java resources
+//    sourceSets.main.aidl.srcDirs = ['src/main/aidl']
+//    sourceSets.main.renderscript.srcDirs = ['src/main/rs']
+//
+//    sourceSets.androidTest.setRoot('src/androidTest') // tests
+
+
+    sourceSets.androidTest.setRoot('android-nkd/androidTest') // tests
+
+    sourceSets.main.manifest.srcFile 'android-nkd/AndroidManifest.xml'
+    sourceSets.main.res.srcDirs = ['android-nkd/res'] // android resources
+
+    sourceSets.main.jni.srcDirs = [] // disable automatic ndk-build call, which ignore our Android.mk
+    sourceSets.main.jniLibs.srcDir 'android-nkd/libs'
+
+
+    task capnpBuild(type: Exec) {
+        workingDir file('src/fcore/capnproto')
+        commandLine getWinCmd(), getWinCmdArg(), getCapnpCmd()
+    }
+
+
+    // call regular ndk-build(.cmd) script from app directory
+    task ndkBuild(type: Exec) {
+// uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
+//        dependsOn capnpBuild
+        workingDir file('android-nkd')
+        commandLine getNdkBuildCmd()
+    }
+
+
+    tasks.withType(JavaCompile) {
+        compileTask -> compileTask.dependsOn ndkBuild
+    }
+
+
+    task cleanNative(type: Exec) {
+        workingDir file('android-nkd')
+        commandLine getNdkBuildCmd(), 'clean'
+    }
+
+
+    clean.dependsOn cleanNative
+}
+
+
+dependencies {
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+
+def getNdkDir() {
+    if (System.env.ANDROID_NDK_ROOT != null)
+        return System.env.ANDROID_NDK_ROOT
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def ndkdir = properties.getProperty('ndk.dir', null)
+    if (ndkdir == null)
+        throw new GradleException("NDK location not found. Define location with ndk.dir in the local.properties file or with an ANDROID_NDK_ROOT environment variable.")
+
+    return ndkdir
+}
+
+
+def getNdkBuildCmd() {
+    def ndkbuild = getNdkDir() + "/ndk-build"
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        ndkbuild += ".cmd"
+
+    return ndkbuild
+}
+
+
+def getWinCmd() {
+    def winCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        winCmd = "cmd"
+    return winCmd
+}
+
+
+def getWinCmdArg() {
+    def winCmdArg = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        winCmdArg = "/c"
+    return winCmdArg
+}
+
+
+def getCapnpCmd() {
+// TODO: for linux
+    def capnpCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS))
+        capnpCmd = "capnp-main.cmd"
+    return capnpCmd
+}
