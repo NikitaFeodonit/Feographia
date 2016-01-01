@@ -1,0 +1,976 @@
+/*
+ * Project:  Feographia
+ * Purpose:  Mobile application to work with the biblical text
+ * Authors:  NikitaFeodonit, nfeodonit@yandex.com
+ * ****************************************************************************
+ * Copyright (C) 2015 NikitaFeodonit
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.model.library'
+
+
+model {
+    android {
+        compileSdkVersion = 23
+        buildToolsVersion = "23.0.1"
+
+        defaultConfig.with {
+            minSdkVersion.apiLevel = 9
+            targetSdkVersion.apiLevel = 23
+            versionCode = 1
+            versionName = "0.1"
+        }
+
+// compile native
+
+        task capnpBuild(type: Exec) {
+            workingDir file('src/fcore/capnproto')
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine getWinCmd(), getWinCmdArg(), getCapnpCmd()
+            } else {
+                // TODO: for others (linux ...)
+            }
+        }
+
+        // call regular ndk-build(.cmd) script from app directory
+        task ndkBuild(type: Exec) {
+            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto.capnp are modified
+            //dependsOn capnpBuild
+            workingDir file('android-nkd')
+            commandLine getNdkBuildCmd()
+        }
+
+        tasks.withType(JavaCompile) {
+            compileTask -> compileTask.dependsOn ndkBuild
+        }
+
+// clean native
+
+        task cleanNative(type: Exec) {
+            workingDir file('android-nkd')
+            commandLine getNdkBuildCmd(), 'clean'
+        }
+
+        clean.dependsOn cleanNative
+    }
+
+// for new experimental gradle version 0.4.0
+// http://stackoverflow.com/a/31805506
+//    manifest.srcFile = 'main/AndroidManifest.xml'
+//    android.sources {
+//        main {
+//            manifest.source {
+//                srcDir 'main'
+//                include 'AndroidManifest.xml'
+//            }
+//            java.source.srcDirs = ['src/main/java']
+//        }
+//    }
+
+// all android.sources values
+// (from sources,
+// http://jcenter.bintray.com/com/android/tools/build/gradle-experimental/0.4.0/gradle-experimental-0.4.0-sources.jar
+// )
+//    android.sources {
+//        main {
+//            manifest.source.srcFile = 'main/AndroidManifest.xml'
+//
+//            java.source.srcDirs = ['src/main/jni', '../../../common']
+//            res.source.srcDirs = ['src/main/jni', '../../../common']
+//            assets.source.srcDirs = ['src/main/jni', '../../../common']
+//
+//            jni.source.srcDirs = ['src/main/jni', '../../../common']
+//            jniLibs.source.srcDirs = ['src/main/jni', '../../../common']
+//
+//            resources.source.srcDirs = ['src/main/jni', '../../../common']
+//            aidl.source.srcDirs = ['src/main/jni', '../../../common']
+//            renderscript.source.srcDirs = ['src/main/jni', '../../../common']
+//
+// form old version // sourceSets.androidTest.setRoot('src/androidTest') // tests
+//        }
+//    }
+
+
+    android.sources {
+        main {
+            // TODO: change it for not experimental gradle version
+            // to like this
+            // sourceSets.main.manifest.srcFile 'android-nkd/AndroidManifest.xml'
+            manifest.source {
+                srcDir 'android-nkd'
+                include 'AndroidManifest.xml'
+            }
+
+            res.source.srcDirs = ['android-nkd/res']
+
+            jniLibs.source.srcDirs = ['android-nkd/libs']
+
+            // TODO: use productFlavors or buildTypes
+            // for project compiling and assembling
+            // Comment it for source editing in Android Studio.
+//            jni.source.srcDirs = [] // disable automatic ndk-build call, which ignore our Android.mk
+
+            // Only for source editing in Android Studio, not for project compiling and assembling.
+            // Uncomment it for source editing in Android Studio.
+            // See also android.ndk
+//            jni.source.srcDirs = ['src']
+            jni.source.srcDirs = [
+                    'src',
+                    'libs',
+                    'prebuild-libs'
+            ]
+        }
+    }
+
+    // Only for source editing in Android Studio, not for compiling.
+    // Has no effect if jni.source.srcDirs = []
+
+        android.ndk {
+                moduleName = "fcore"
+
+                platformVersion = 9
+
+                toolchain = "gcc"
+                toolchainVersion = "4.9"
+                abiFilters.add("armeabi-v7a")
+
+                debuggable = false
+                renderscriptNdkMode = false
+
+                // http://developer.android.com/ndk/guides/cpp-support.html#runtimes
+                // file:///<path to ndk>/docs/Programmers_Guide/html/md_3__key__topics__building__a_p_p_l_i_c_a_t_i_o_n-_m_k.html
+                stl = "gnustl_shared"
+
+//CFlags.clear()
+/*
+        -x
+        c
+        -c
+        -fPIC
+        -DANDROID
+        -DANDROID_NDK
+        --sysroot=E:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1/platforms/android-9/arch-arm
+        -fpic
+        -ffunction-sections
+        -funwind-tables
+        -fstack-protector
+        -no-canonical-prefixes
+        -march=armv7-a
+        -mfpu=vfpv3-d16
+        -mfloat-abi=softfp
+        -mthumb
+        -Os
+        -g
+        -DNDEBUG
+        -fomit-frame-pointer
+        -fno-strict-aliasing
+        -finline-limit=64
+*/
+
+
+//cppFlags.clear()
+/*
+        -x
+        c++
+        -c
+        -fPIC
+        -DANDROID
+        -DANDROID_NDK
+        -fno-rtti
+        -fno-exceptions
+        --sysroot=E:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1/platforms/android-9/arch-arm
+        -IE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\include
+        -IE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\libs\\armeabi-v7a\\include
+        -IE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\include\\backward
+        -fpic
+        -ffunction-sections
+        -funwind-tables
+        -fstack-protector
+        -no-canonical-prefixes
+        -march=armv7-a
+        -mfpu=vfpv3-d16
+        -mfloat-abi=softfp
+        -mthumb
+        -Os
+        -g
+        -DNDEBUG
+        -fomit-frame-pointer
+        -fno-strict-aliasing
+        -finline-limit=64
+*/
+
+
+//ldFlags.clear()
+/*
+-shared
+-Wl,-soname,libfcore.so
+-o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\binaries\\release\\obj\\armeabi-v7a\\libfcore.so
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainC\\7gwriginyp7631mxkkgkp91r7\\shell.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainC\\c1z4i7vh9m3m393anj38rwob2\\sqlite3.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\3ggbo02iqv7gkrhvmosn5c6st\\FcConst.capnp.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\3v0knt0nw33m93wgnnxw1q2h4\\FcoreLog.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4de9hv0kxdflv8gfxsx19n10h\\Fcore.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4dnjpkwyeue5mwbr85m3hikiq\\Book.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4o4l2omdh8i55hbggo7vwse6y\\Verse.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4tmjgz1kp03migi0rzx3b8crr\\Transaction.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\51565inq7bzlzn73kznb355wj\\SendErrorMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\6l8vcnv01mur3a89mieo0e2az\\SqlModule.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\6ytp61m3fa5sw61a5i6uz3z3a\\FsModule.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\7aahrgkxoah1s68apy8y6zz2e\\Module.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\7b0jcovxc0m5ip3zvovmspilq\\FcoreMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\8ooraluauqzs6iowtsfqj43ja\\Statement.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\9s5uacqh8klqdeanwx22l3n0f\\FcoreAndroid.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\9z36y4mewyzs5v9m8tndyd4jv\\FcMsg.capnp.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\9zpk1njx2lbg2pq5n9hc755dw\\Column.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\ajfip2937qpfc0nh145eaqwpf\\SendChapterTextMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\anx1hlliwx02vyshr4okb2ewh\\FsBook.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\arbtehl4ggxlwy4v1t70s0j1b\\SqlWord.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\bnll55wbm8z8lwnp2hoi1v4i3\\Database.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\bnpm6xfs708bwxv1gkpkxd1kb\\Word.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\by2fdyyeol3bg5vk51x0uak5z\\SendFileTextMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\eno25tif5g5xz1bnfgbfj3r95\\Chapter.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\eswi60yuj6c8h5l21qg914p2k\\Librarian.o
+-Wl,--no-undefined
+-Wl,-z,noexecstack
+-Wl,-z,relro
+-Wl,-z,now
+--sysroot=E:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1/platforms/android-9/arch-arm
+-Wl,--build-id
+-LE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\libs\\armeabi-v7a
+-lgnustl_shared
+-no-canonical-prefixes
+*/
+
+
+
+
+
+
+/*
+//[armeabi-v7a] Compile++ thumb: fcore <= Module.cpp
+//E:/Dev/Tools/Android/crystax-ndk-10.2.1/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-g++
+//-MMD -MP -MF ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Module.o.d
+-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes
+-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp
+-fno-exceptions -fno-rtti -mthumb -Os -g -DNDEBUG -fomit-frame-pointer -fno-strict-aliasing -finline-limit=64
+
+-I../src
+-I../src/../prebuild-libs/zeromq/include
+-I../src/../prebuild-libs/capnproto-cpp/include
+-I../src/../prebuild-libs/capnproto-cpp/include
+-I../src/../libs/SQLiteCpp/src/include
+-I../src/../libs/sqlite/src
+
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/include
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/include
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/include/backward
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/include
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/include
+
+-DANDROID -Wa,--noexecstack -Wformat -Werror=format-security -fexceptions -frtti -std=c++11
+-frtti -fexceptions -std=c++11 -fexceptions -frtti -c
+
+../src/fcore/library/modules/Module.cpp -o ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Module.o
+*/
+
+
+
+/*
+            [armeabi-v7a] StaticLibrary  : libSQLiteCpp.a
+            E:/Dev/Tools/Android/crystax-ndk-10.2.1/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-gcc-ar crsD ./obj/local/armeabi-v7a/libSQLiteCpp.a ./obj/local/armeabi-v7a/objs/SQLiteCpp/src/Column.o ./obj/local/armeabi-v7a/objs/SQLiteCpp/src/Database.o ./obj/local/armeabi-v7a/objs/SQLiteCpp/src/Statement.o ./obj/local/armeabi-v7a/objs/SQLiteCpp/src/Transaction.o
+            md "obj\local\armeabi-v7a\objs\sqlite\src" >NUL 2>NUL || rem
+*/
+
+
+
+/*
+//[armeabi-v7a] Compile thumb  : sqlite <= sqlite3.c
+//E:/Dev/Tools/Android/crystax-ndk-10.2.1/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-gcc
+
+-MMD -MP -MF ./obj/local/armeabi-v7a/objs/sqlite/src/sqlite3.o.d
+-fpic -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes
+-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=softfp -mthumb -Os -g -DNDEBUG -fomit-frame-pointer
+-fno-strict-aliasing -finline-limit=64
+-DANDROID -DSQLITE_THREADSAFE=2 -Wa,--noexecstack -Wformat -Werror=format-security -c
+-I../src/../libs/sqlite/src
+-I../src/../libs/sqlite
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/include
+-IE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/include
+
+../src/../libs/sqlite/src/sqlite3.c -o ./obj/local/armeabi-v7a/objs/sqlite/src/sqlite3.o
+*/
+
+
+
+/*
+//[armeabi-v7a] SharedLibrary  : libfcore.so
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/toolchains/arm-linux-androideabi-4.9/prebuilt/windows-x86_64/bin/arm-linux-androideabi-g++
+-Wl,-soname,libfcore.so -shared
+--sysroot=E:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Module.o ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/FsModule.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Book.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/FsBook.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Chapter.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Verse.o ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/SqlModule.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/Librarian.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/capnproto/FcMsg.capnp.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/capnproto/FcConst.capnp.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/message/FcoreMsg.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/message/SendErrorMsg.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/message/SendFileTextMsg.o ./obj/local/armeabi-v7a/objs/fcore/fcore/message/SendChapterTextMsg.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/FcoreLog.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/Fcore.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/platform/android/FcoreAndroid.o
+-Wl,--whole-archive ../src/../prebuild-libs/zeromq/lib/libjzmq.a
+-Wl,--no-whole-archive ../src/../prebuild-libs/zeromq/lib/libzmq.a
+../src/../prebuild-libs/capnproto-cpp/lib/libcapnp.a
+../src/../prebuild-libs/capnproto-cpp/lib/libkj.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a
+./obj/local/armeabi-v7a/libSQLiteCpp.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_chrono.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_thread.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_date_time.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_filesystem.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_regex.a
+./obj/local/armeabi-v7a/libsqlite.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_system.a
+-lgcc
+./obj/local/armeabi-v7a/libgnustl_shared.so -no-canonical-prefixes -march=armv7-a
+-Wl,--fix-cortex-a8  -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -mthumb
+-LE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/lib
+-llog
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libsupc++.a
+-LE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/empty
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.so
+-lc
+-o ./obj/local/armeabi-v7a/libfcore.so
+*/
+
+
+//        cppFlags.add("-std=c++11")
+//        cppFlags.add("-fexceptions")
+//        cppFlags.add("-frtti")
+
+                // Produce debugging information in the operating system's native format
+                // (stabs, COFF, XCOFF, or DWARF 2). GDB can work with this debugging information.
+//        cppFlags.add("-g")
+
+//        cppFlags.add("-Wall")
+
+                // include folders
+//        cppFlags.add("-I${file("src")}".toString())
+//        cppFlags.add("-I${file("libs/sqlite/src")}".toString())
+//        cppFlags.add("-I${file("libs/SQLiteCpp/src/include")}".toString())
+//        cppFlags.add("-I${file("prebuild-libs/zeromq/include")}".toString())
+//        cppFlags.add("-I${file("prebuild-libs/capnproto-cpp/include")}".toString())
+//        cppFlags.add("-I${file(getNdkDir() + "/sources/boost/1.58.0/include")}".toString())
+//
+//        ldLibs.add("log")
+
+
+
+
+/*
+// CFlags from ndk-build
+//            -MMD -MP -MF ./obj/local/armeabi-v7a/objs/sqlite/src/sqlite3.o.d
+            -fpic
+            -fstack-protector-strong
+            -DSQLITE_THREADSAFE=2
+            -Wa,--noexecstack
+            -Wformat
+            -Werror=format-security
+
+            -I../src/../libs/sqlite/src
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/include
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/include
+*/
+
+/*
+// CFlags from gradle
+            -x
+            c
+            -fPIC
+            -DANDROID_NDK
+            --sysroot=E:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1/platforms/android-9/arch-arm
+            -fstack-protector
+*/
+
+
+            CFlags.add("-fpic")
+            CFlags.add("-ffunction-sections")
+            CFlags.add("-funwind-tables")
+            CFlags.add("-fstack-protector-strong")
+            CFlags.add("-no-canonical-prefixes")
+            CFlags.add("-march=armv7-a")
+            CFlags.add("-mfpu=vfpv3-d16")
+            CFlags.add("-mfloat-abi=softfp")
+            CFlags.add("-mthumb")
+            CFlags.add("-Os")
+            CFlags.add("-g")
+            CFlags.add("-DNDEBUG")
+            CFlags.add("-fomit-frame-pointer")
+            CFlags.add("-fno-strict-aliasing")
+            CFlags.add("-finline-limit=64")
+            CFlags.add("-DANDROID")
+            CFlags.add("-DSQLITE_THREADSAFE=2")
+            CFlags.add("-Wa,--noexecstack")
+            CFlags.add("-Wformat")
+            CFlags.add("-Werror=format-security")
+            CFlags.add("-c")
+
+            CFlags.add("-I${file("libs/sqlite/src")}".toString())
+            CFlags.add("-I${file(getNdkDir() + "/sources/crystax/include")}".toString())
+            CFlags.add("-I${file(getNdkDir() + "/platforms/android-9/arch-arm/usr/include")}".toString())
+
+
+
+
+/*
+// cppFlags from ndk-build
+//            -MMD -MP -MF ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Module.o.d
+            -fstack-protector-strong
+
+            -Wa,--noexecstack
+            -Wformat
+            -Werror=format-security
+            -std=c++11
+            -frtti
+            -fexceptions
+
+            -I../src
+            -I../src/../prebuild-libs/zeromq/include
+            -I../src/../prebuild-libs/capnproto-cpp/include
+            -I../src/../prebuild-libs/capnproto-cpp/include
+            -I../src/../libs/SQLiteCpp/src/include
+            -I../src/../libs/sqlite/src
+
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/include
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/include
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/include
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/include/backward
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/include
+            -IE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/include
+
+            ../src/fcore/library/modules/Module.cpp -o ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Module.o
+*/
+
+
+/*
+// cppFlags from gradle
+            -x
+            c++
+            -fPIC
+            -DANDROID_NDK
+
+            -fstack-protector
+
+            --sysroot=E:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1/platforms/android-9/arch-arm
+            -IE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\include
+            -IE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\libs\\armeabi-v7a\\include
+            -IE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\include\\backward
+*/
+
+
+            cppFlags.add("-fpic")
+            cppFlags.add("-ffunction-sections")
+            cppFlags.add("-funwind-tables")
+            cppFlags.add("-fstack-protector-strong")
+            cppFlags.add("-no-canonical-prefixes")
+            cppFlags.add("-march=armv7-a")
+            cppFlags.add("-mfpu=vfpv3-d16")
+            cppFlags.add("-mfloat-abi=softfp")
+            cppFlags.add("-fno-exceptions")
+            cppFlags.add("-fno-rtti")
+            cppFlags.add("-mthumb")
+            cppFlags.add("-Os")
+            cppFlags.add("-g")
+            cppFlags.add("-DNDEBUG")
+            cppFlags.add("-fomit-frame-pointer")
+            cppFlags.add("-fno-strict-aliasing")
+            cppFlags.add("-finline-limit=64")
+            cppFlags.add("-DANDROID")
+            cppFlags.add("-Wa,--noexecstack")
+            cppFlags.add("-Wformat")
+            cppFlags.add("-Werror=format-security")
+            cppFlags.add("-fexceptions")
+            cppFlags.add("-frtti")
+            cppFlags.add("-std=c++11")
+            cppFlags.add("-c")
+
+            cppFlags.add("-I${file("src")}".toString())
+            cppFlags.add("-I${file("prebuild-libs/zeromq/include")}".toString())
+            cppFlags.add("-I${file("prebuild-libs/capnproto-cpp/include")}".toString())
+            cppFlags.add("-I${file("libs/SQLiteCpp/src/include")}".toString())
+            cppFlags.add("-I${file("libs/sqlite/src")}".toString())
+
+            cppFlags.add("-I${file(getNdkDir() + "/sources/boost/1.58.0/include")}".toString())
+            cppFlags.add("-I${file(getNdkDir() + "/sources/crystax/include")}".toString())
+            cppFlags.add("-I${file(getNdkDir() + "/platforms/android-9/arch-arm/usr/include")}".toString())
+
+
+// ldFlags from ndk-build
+/*
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Module.o ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/FsModule.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Book.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/FsBook.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Chapter.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/Verse.o ./obj/local/armeabi-v7a/objs/fcore/fcore/library/modules/SqlModule.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/library/Librarian.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/capnproto/FcMsg.capnp.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/capnproto/FcConst.capnp.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/message/FcoreMsg.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/message/SendErrorMsg.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/message/SendFileTextMsg.o ./obj/local/armeabi-v7a/objs/fcore/fcore/message/SendChapterTextMsg.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/FcoreLog.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/Fcore.o
+./obj/local/armeabi-v7a/objs/fcore/fcore/platform/android/FcoreAndroid.o
+-Wl,--whole-archive ../src/../prebuild-libs/zeromq/lib/libjzmq.a
+-Wl,--no-whole-archive ../src/../prebuild-libs/zeromq/lib/libzmq.a
+../src/../prebuild-libs/capnproto-cpp/lib/libcapnp.a
+../src/../prebuild-libs/capnproto-cpp/lib/libkj.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a
+./obj/local/armeabi-v7a/libSQLiteCpp.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_chrono.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_thread.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_date_time.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_filesystem.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_regex.a
+./obj/local/armeabi-v7a/libsqlite.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_system.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libsupc++.a
+*/
+
+
+
+/*
+// ldFlags from ndk-build
+-lgcc
+./obj/local/armeabi-v7a/libgnustl_shared.so
+-march=armv7-a
+-Wl,--fix-cortex-a8
+-mthumb
+
+-LE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/lib
+-LE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/empty
+
+-llog
+
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.so
+
+-lc
+*/
+
+
+
+
+/*
+// ldFlags from gradle
+-Wl,--build-id
+
+-LE:\\Dev\\Tools\\Android\\crystax-ndk-10.2.1\\sources\\cxx-stl\\gnu-libstdc++\\4.9\\libs\\armeabi-v7a
+
+-lgnustl_shared
+*/
+
+/*
+//[armeabi-v7a] SharedLibrary  : libfcore.so
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a
+./obj/local/armeabi-v7a/libSQLiteCpp.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_chrono.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_thread.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_date_time.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_filesystem.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_regex.a
+./obj/local/armeabi-v7a/libsqlite.a
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/boost/1.58.0/libs/armeabi-v7a/libboost_system.a
+-lgcc
+./obj/local/armeabi-v7a/libgnustl_shared.so -no-canonical-prefixes -march=armv7-a
+-Wl,--fix-cortex-a8  -Wl,--no-undefined -Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now -mthumb
+-LE:/Dev/Tools/Android/crystax-ndk-10.2.1/platforms/android-9/arch-arm/usr/lib
+-llog
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libsupc++.a
+-LE:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/empty
+E:/Dev/Tools/Android/crystax-ndk-10.2.1/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.so
+-lc
+-o ./obj/local/armeabi-v7a/libfcore.so
+*/
+
+
+////            ldFlags.add("-Wl,--whole-archive ${file("prebuild-libs/zeromq/lib/libjzmq.a")}".toString())
+////            ldFlags.add("-Wl,--no-whole-archive ${file("prebuild-libs/zeromq/lib/libzmq.a")}".toString())
+//            ldFlags.add("${file("prebuild-libs/zeromq/lib/libjzmq.a")}".toString())
+//            ldFlags.add("${file("prebuild-libs/zeromq/lib/libzmq.a")}".toString())
+////            ldFlags.add("-Wl,--whole-archive E:/Dev/projects/Android/Feographia_Android/fcore/prebuild-libs/zeromq/lib/libjzmq.a".toString())
+////            ldFlags.add("-Wl,--no-whole-archive E:/Dev/projects/Android/Feographia_Android/fcore/prebuild-libs/zeromq/lib/libzmq.a".toString())
+//            ldFlags.add("${file("prebuild-libs/capnproto-cpp/lib/libcapnp.a")}".toString())
+//            ldFlags.add("${file("prebuild-libs/capnproto-cpp/lib/libkj.a")}".toString())
+//
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a")}".toString())
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_chrono.a")}".toString())
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_thread.a")}".toString())
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_date_time.a")}".toString())
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_filesystem.a")}".toString())
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_regex.a")}".toString())
+//            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_system.a")}".toString())
+
+
+
+            ldFlags.add("-L${file("prebuild-libs/zeromq/lib")}".toString())
+            ldFlags.add("-L${file("prebuild-libs/capnproto-cpp/lib")}".toString())
+            ldFlags.add("-L${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a")}".toString())
+
+            ldFlags.add("-ljzmq")
+            ldFlags.add("-lzmq")
+
+            ldFlags.add("-lcapnp")
+            ldFlags.add("-lkj")
+
+            ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a")}".toString())
+//            ldFlags.add("-lboost_log")
+            ldFlags.add("-lboost_chrono")
+            ldFlags.add("-lboost_thread")
+            ldFlags.add("-lboost_date_time")
+            ldFlags.add("-lboost_filesystem")
+            ldFlags.add("-lboost_regex")
+            ldFlags.add("-lboost_system")
+
+
+
+            ldFlags.add("-lgcc")
+
+            ldFlags.add("${file(getNdkDir() + "/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libgnustl_shared.so")}".toString())
+
+            ldFlags.add("-no-canonical-prefixes")
+            ldFlags.add("-march=armv7-a")
+            ldFlags.add("-Wl,--fix-cortex-a8")
+            ldFlags.add("-Wl,--no-undefined")
+            ldFlags.add("-Wl,-z,noexecstack")
+            ldFlags.add("-Wl,-z,relro")
+            ldFlags.add("-Wl,-z,now")
+            ldFlags.add("-mthumb")
+
+            ldFlags.add("-L${file(getNdkDir() + "/platforms/android-9/arch-arm/usr/lib")}".toString())
+            ldFlags.add("-llog")
+            ldFlags.add("${file(getNdkDir() + "/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/libsupc++.a")}".toString())
+            ldFlags.add("-L${file(getNdkDir() + "/sources/crystax/empty")}".toString())
+
+            ldFlags.add("${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.so")}".toString())
+//            ldFlags.add("-L${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a/thumb")}".toString())
+//            ldFlags.add("-lcrystax")
+
+            ldFlags.add("-lc")
+
+
+//            ldFlags.add("-L${file(getNdkDir() + "/platforms/android-9/arch-arm/usr/lib")}".toString())
+
+
+
+
+
+//                ldFlags.add("-lcrystax")
+
+//            ldFlags.add("-L${file("prebuild-libs/zeromq/lib")}".toString())
+//            ldFlags.add("-L${file("prebuild-libs/capnproto-cpp/lib")}".toString())
+//            ldFlags.add("-L${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a")}".toString())
+//            ldFlags.add("-L${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a")}".toString())
+
+
+
+// ldFlags from gradle
+/*
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainC\\7gwriginyp7631mxkkgkp91r7\\shell.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainC\\c1z4i7vh9m3m393anj38rwob2\\sqlite3.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\3ggbo02iqv7gkrhvmosn5c6st\\FcConst.capnp.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\3v0knt0nw33m93wgnnxw1q2h4\\FcoreLog.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4de9hv0kxdflv8gfxsx19n10h\\Fcore.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4dnjpkwyeue5mwbr85m3hikiq\\Book.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4o4l2omdh8i55hbggo7vwse6y\\Verse.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\4tmjgz1kp03migi0rzx3b8crr\\Transaction.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\51565inq7bzlzn73kznb355wj\\SendErrorMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\6l8vcnv01mur3a89mieo0e2az\\SqlModule.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\6ytp61m3fa5sw61a5i6uz3z3a\\FsModule.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\7aahrgkxoah1s68apy8y6zz2e\\Module.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\7b0jcovxc0m5ip3zvovmspilq\\FcoreMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\8ooraluauqzs6iowtsfqj43ja\\Statement.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\9s5uacqh8klqdeanwx22l3n0f\\FcoreAndroid.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\9z36y4mewyzs5v9m8tndyd4jv\\FcMsg.capnp.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\9zpk1njx2lbg2pq5n9hc755dw\\Column.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\ajfip2937qpfc0nh145eaqwpf\\SendChapterTextMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\anx1hlliwx02vyshr4okb2ewh\\FsBook.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\arbtehl4ggxlwy4v1t70s0j1b\\SqlWord.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\bnll55wbm8z8lwnp2hoi1v4i3\\Database.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\bnpm6xfs708bwxv1gkpkxd1kb\\Word.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\by2fdyyeol3bg5vk51x0uak5z\\SendFileTextMsg.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\eno25tif5g5xz1bnfgbfj3r95\\Chapter.o
+E:\\Dev\\projects\\Android\\Feographia_Android\\fcore\\build\\intermediates\\objectFiles\\armeabi-v7aReleaseFcoreSharedLibrary\\fcoreMainCpp\\eswi60yuj6c8h5l21qg914p2k\\Librarian.o
+*/
+
+
+
+
+//        cppFlags.add("-I${file("src")}".toString())
+//        cppFlags.add("-I${file("libs/sqlite/src")}".toString())
+//        cppFlags.add("-I${file("libs/SQLiteCpp/src/include")}".toString())
+//        cppFlags.add("-I${file("prebuild-libs/zeromq/include")}".toString())
+//        cppFlags.add("-I${file("prebuild-libs/capnproto-cpp/include")}".toString())
+//        cppFlags.add("-I${file(getNdkDir() + "/sources/boost/1.58.0/include")}".toString())
+
+
+
+
+
+
+//        ldFlags.add("-L${file("prebuild-libs/zeromq/lib")}".toString())
+//        ldFlags.add("-L${file("prebuild-libs/capnproto-cpp/lib")}".toString())
+//        ldFlags.add("-L${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a")}".toString())
+//        ldFlags.add("-L${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a")}".toString())
+//
+//
+//        ldFlags.add("-ljzmq")
+//        ldFlags.add("-lzmq")
+//
+//        ldFlags.add("-lcapnpc")
+//        ldFlags.add("-lcapnp-rpc")
+//        ldFlags.add("-lcapnp")
+//        ldFlags.add("-lkj-async")
+//        ldFlags.add("-lkj")
+
+
+                // LOCAL_STATIC_LIBRARIES += boost_log_static
+//        ldFlags.add("-lboost_log")
+
+
+                // LOCAL_STATIC_LIBRARIES += boost_chrono_static
+//        ldFlags.add("-lboost_chrono")
+
+                // LOCAL_STATIC_LIBRARIES += boost_thread_static
+//        ldFlags.add("-lboost_thread")
+
+                // LOCAL_STATIC_LIBRARIES += boost_date_time_static
+//        ldFlags.add("-lboost_date_time")
+
+                // LOCAL_STATIC_LIBRARIES += boost_filesystem_static
+//        ldFlags.add("-lboost_filesystem")
+
+                // LOCAL_STATIC_LIBRARIES += boost_system_static
+//        ldFlags.add("-lboost_system")
+
+                // LOCAL_STATIC_LIBRARIES += boost_regex_static
+//        ldFlags.add("-lboost_regex")
+
+//        ldFlags.add("-latomic")
+
+
+
+
+
+
+//                ldFlags.add("-lboost_coroutine")
+//
+//                ldFlags.add("-lboost_context")
+//
+//                ldFlags.add("-lboost_log_setup")
+//                ldFlags.add("-lboost_log")
+//
+//                ldFlags.add("-lboost_wave")
+//
+//                ldFlags.add("-lboost_thread")
+//
+//                ldFlags.add("-lboost_timer")
+//
+//                ldFlags.add("-lboost_chrono")
+//                ldFlags.add("-lboost_filesystem")
+//                ldFlags.add("-lboost_locale")
+//                ldFlags.add("-lboost_random")
+//
+//                ldFlags.add("-lboost_system")
+//
+//                ldFlags.add("-lboost_graph")
+//
+//                ldFlags.add("-lboost_wserialization")
+//
+//                ldFlags.add("-lboost_atomic")
+//                ldFlags.add("-lboost_container")
+//                ldFlags.add("-lboost_date_time")
+//                ldFlags.add("-lboost_exception")
+//                ldFlags.add("-lboost_math_c99")
+//                ldFlags.add("-lboost_math_c99f")
+//                ldFlags.add("-lboost_math_c99l")
+//                ldFlags.add("-lboost_math_tr1")
+//                ldFlags.add("-lboost_math_tr1f")
+//                ldFlags.add("-lboost_math_tr1l")
+//                ldFlags.add("-lboost_prg_exec_monitor")
+//                ldFlags.add("-lboost_program_options")
+//                ldFlags.add("-lboost_regex")
+//                ldFlags.add("-lboost_serialization")
+//                ldFlags.add("-lboost_signals")
+//                ldFlags.add("-lboost_test_exec_monitor")
+//                ldFlags.add("-lboost_unit_test_framework")
+//
+//
+//                ldFlags.add("-lboost_iostreams")
+//                ldFlags.add("-lz")
+
+
+//                ldFlags.add("-llog")
+//                ldFlags.add("-lcrystax")
+        }
+
+/*
+    android.productFlavors {
+        create("arm") {
+            ndk.with {
+                abiFilters.add("armeabi")
+
+//                CFlags.clear()
+//                cppFlags.clear()
+//                ldFlags.clear()
+            }
+        }
+
+
+        create("armv7") {
+            ndk.with {
+                abiFilters.add("armeabi-v7a")
+
+//                CFlags.clear()
+//                cppFlags.clear()
+//                ldFlags.clear()
+
+//                ldFlags.add("-L${gpg_sdk_path}/lib/c++/armeabi-v7a".toString())
+
+
+//                ldFlags.add("-L${getNdkDir()}/sources/crystax/libs/armeabi-v7a".toString())
+//                ldFlags.add("-L${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a".toString())
+//                ldFlags.add("-L${file("prebuild-libs/zeromq/lib")}".toString())
+//                ldFlags.add("-L${file("prebuild-libs/capnproto-cpp/lib")}".toString())
+
+
+//                ldFlags.add("-L${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a")}".toString())
+//                ldFlags.add("-L${file("prebuild-libs/zeromq/lib")}".toString())
+//                ldFlags.add("-L${file("prebuild-libs/capnproto-cpp/lib")}".toString())
+//                ldFlags.add("-L${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a")}".toString())
+            }
+        }
+//        create("x86") {
+//            ndk.with {
+//                abiFilters.add("x86")
+//            }
+//        }
+//        create("mips") {
+//            ndk.with {
+//                abiFilters.add("mips")
+//            }
+//        }
+//        create("fat") {
+//
+//        }
+
+
+    }
+*/
+
+
+    android.buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles.add(file('proguard-rules.pro'))
+
+//            ndk.with {
+//                abiFilters.add("armeabi-v7a")
+
+//                CFlags.clear()
+//                cppFlags.clear()
+//                ldFlags.clear()
+//            }
+        }
+
+//        debug {
+//            minifyEnabled = false
+//            proguardFiles.add(file('proguard-rules.pro'))
+//
+//            ndk.with {
+////                abiFilters.add("armeabi-v7a")
+//
+//                CFlags.clear()
+//                cppFlags.clear()
+//                ldFlags.clear()
+//            }
+//        }
+    }
+}
+
+
+dependencies {
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+
+def getNdkDir() {
+    if (System.env.ANDROID_NDK_ROOT != null)
+        return System.env.ANDROID_NDK_ROOT
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def ndkdir = properties.getProperty('ndk.dir', null)
+    if (ndkdir == null)
+        throw new GradleException("NDK location not found. Define location with ndk.dir " +
+                "in the local.properties file or with an ANDROID_NDK_ROOT environment variable.")
+
+    return ndkdir
+}
+
+
+def getNdkBuildCmd() {
+    def ndkbuild = getNdkDir() + "/ndk-build"
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        ndkbuild += ".cmd"
+    }
+    return ndkbuild
+}
+
+
+def getWinCmd() {
+    def winCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        winCmd = "cmd"
+    }
+    return winCmd
+}
+
+
+def getWinCmdArg() {
+    def winCmdArg = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        winCmdArg = "/c"
+    }
+    return winCmdArg
+}
+
+
+def getCapnpCmd() {
+    def capnpCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        capnpCmd = "capnp-main.cmd"
+    } else {
+        // TODO: for others (linux ...)
+    }
+    return capnpCmd
+}
