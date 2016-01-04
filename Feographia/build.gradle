@@ -77,7 +77,8 @@ dependencies {
 model {
     android {
         tasks.withType(JavaCompile) {
-            compileTask -> compileTask.dependsOn capnpJavaBuild
+            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
+//            compileTask -> compileTask.dependsOn capnpJavaBuild
         }
 
         task capnpJavaBuild(type: Exec) {
@@ -89,11 +90,16 @@ model {
     }
 }
 
-
 //
 //
 //
 // native fcore
+//
+//
+//
+// depends on CrystaX 10.3+, in local.properties must be
+// ndk.dir=<path to crystax-ndk-10.3.x>
+//
 //
 //
 // http://ph0b.com/new-android-studio-ndk-support/
@@ -138,11 +144,9 @@ model {
 
     android.sources {
         main {
-            // TODO: all libs in one dir
             jni.source.srcDirs = [
                     "${getFcoreModuleDir()}/src",
-                    "${getFcoreModuleDir()}/libs",
-                    "${getFcoreModuleDir()}/prebuild-libs"
+                    "${getImportedLibsDir()}"
             ]
         }
     }
@@ -157,7 +161,8 @@ model {
 model {
     android {
         tasks.withType(JavaCompile) {
-            compileTask -> compileTask.dependsOn capnpFcoreBuild
+            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
+//            compileTask -> compileTask.dependsOn capnpFcoreBuild
         }
 
         task capnpFcoreBuild(type: Exec) {
@@ -171,9 +176,9 @@ model {
 //
 //
 // see used flags by the compilation
-// <fcore>/build/tmp/compileArmeabi-v7a<Debug|Release>FcoreSharedLibraryFcoreMainC/options.txt
-// <fcore>/build/tmp/compileArmeabi-v7a<Debug|Release>FcoreSharedLibraryFcoreMainCpp/options.txt
-// <fcore>/build/tmp/linkArmeabi-v7a<Debug|Release>FcoreSharedLibrary/options.txt
+// <Feographia>/build/tmp/compileArmeabi-v7a<Debug|Release>FcoreSharedLibraryFcoreMainC/options.txt
+// <Feographia>/build/tmp/compileArmeabi-v7a<Debug|Release>FcoreSharedLibraryFcoreMainCpp/options.txt
+// <Feographia>/build/tmp/linkArmeabi-v7a<Debug|Release>FcoreSharedLibrary/options.txt
 
 // ndk-build debug output for used flags
 // ndk-build[.cmd] V=1
@@ -221,14 +226,14 @@ model {
 
         // http://developer.android.com/ndk/guides/cpp-support.html#runtimes
         // file:///<path to ndk>/docs/Programmers_Guide/html/md_3__key__topics__building__a_p_p_l_i_c_a_t_i_o_n-_m_k.html
-// TODO: make all (vars, methods) for shared, but boost is only static
+// TODO: make all (vars, methods) for shared, but boost must be only static
 //        stl = "gnustl_shared"
         stl = "gnustl_static"
 
 //  ===  CFlags  ===
 
         CFlags.add("-DSQLITE_THREADSAFE=2")
-        CFlags.add("-I" + "${getFcoreModuleDir()}/libs/sqlite/src")
+        CFlags.add("-I" + "${getLibsDir()}/sqlite/src")
         CFlags.add("-I" + "${getCrystaxIncDir()}")
 
 //  ===  cppFlags  ===
@@ -239,48 +244,27 @@ model {
         cppFlags.add("-std=c++11")
 
         cppFlags.add("-I" + "${getFcoreModuleDir()}/src")
-        cppFlags.add("-I" + "${getFcoreModuleDir()}/prebuild-libs/zeromq/include")
-        cppFlags.add("-I" + "${getFcoreModuleDir()}/prebuild-libs/capnproto-cpp/include")
-        cppFlags.add("-I" + "${getFcoreModuleDir()}/libs/SQLiteCpp/src/include")
-        cppFlags.add("-I" + "${getFcoreModuleDir()}/libs/sqlite/src")
+        cppFlags.add("-I" + "${getLibsDir()}/SQLiteCpp/src/include")
+        cppFlags.add("-I" + "${getLibsDir()}/sqlite/src")
+        cppFlags.add("-I" + "${getLibsPrebuiltDir()}/capnproto-cpp/include")
+        cppFlags.add("-I" + "${getLibsPrebuiltDir()}/zeromq/include")
 
         cppFlags.add("-I" + "${getBoostIncDir()}")
         cppFlags.add("-I" + "${getCrystaxIncDir()}")
 
 //  ===  ldFlags  ===
 
+        ldFlags.add("" + "${getLibsPrebuiltDir()}/capnproto-cpp/lib/libcapnp.a")
+        ldFlags.add("" + "${getLibsPrebuiltDir()}/capnproto-cpp/lib/libkj.a")
+
         ldFlags.add("-Wl,--whole-archive")
-        ldFlags.add("" + "${getFcoreModuleDir()}/prebuild-libs/zeromq/lib/libjzmq.a")
+        ldFlags.add("" + "${getLibsPrebuiltDir()}/zeromq/lib/libjzmq.a")
         ldFlags.add("-Wl,--no-whole-archive")
-        ldFlags.add("" + "${getFcoreModuleDir()}/prebuild-libs/zeromq/lib/libzmq.a")
-
-        ldFlags.add("" + "${getFcoreModuleDir()}/prebuild-libs/capnproto-cpp/lib/libcapnp.a")
-        ldFlags.add("" + "${getFcoreModuleDir()}/prebuild-libs/capnproto-cpp/lib/libkj.a")
-
-//        ldFlags.add("" + "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a")
-//        ldFlags.add("" + "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_chrono.a")
-//        ldFlags.add("" + "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_thread.a")
-//        ldFlags.add("" +
-//                "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_date_time.a")
-//        ldFlags.add("" +
-//                "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_filesystem.a")
-//        ldFlags.add("" + "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_regex.a")
-//        ldFlags.add("" + "${getNdkDir()}/sources/boost/1.58.0/libs/armeabi-v7a/libboost_system.a")
-
-
-//        ldFlags.add("" +
-//                "${getNdkDir()}/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/thumb/libgnustl_static.a")
-
+        ldFlags.add("" + "${getLibsPrebuiltDir()}/zeromq/lib/libzmq.a")
 
         ldFlags.add("-llog")
 
         ldFlags.add("-L" + "${getNdkDir()}/sources/crystax/empty")
-
-        // static
-//        ldFlags.add("" + "${getNdkDir()}/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.a")
-
-        // shared
-//        ldFlags.add("" + "${getNdkDir()}/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.so")
     }
 
 
@@ -295,8 +279,8 @@ model {
                     BOOST_STATIC_LIBS.each { name ->
                         libs[name] = "${getBoostLibDir(abi)}/lib${name}.a"
                     }
-                    libs.crystax = getCrystaxLib(abi)
                     libs.gnustl_static = getGnuStlStaticLib(abi)
+                    libs.crystax = getCrystaxLib(abi)
 
                     libs.each { name, file ->
                         ldFlags.add("" + "${file}")
@@ -311,6 +295,24 @@ model {
 def getFcoreModuleDir()
 {
     return "${rootDir}/fcore"
+}
+
+
+def getImportedLibsDir()
+{
+    return "${getFcoreModuleDir()}/imported"
+}
+
+
+def getLibsDir()
+{
+    return "${getImportedLibsDir()}/libs"
+}
+
+
+def getLibsPrebuiltDir()
+{
+    return "${getImportedLibsDir()}/libs_prebuilt"
 }
 
 
@@ -475,14 +477,12 @@ def getCrystaxLibDir(abi)
 def getCrystaxLib(abi)
 {
     return "${getCrystaxLibDir(abi)}/libcrystax.a"
-//    return "${getCrystaxLibDir(abi)}/thumb/libcrystax.a"
 }
 
 
 def getGnuStlStaticLib(abi)
 {
     return "${getCrystaxNdkDir()}/sources/cxx-stl/gnu-libstdc++/${getToolchainVersion()}/libs/${abi}/libgnustl_static.a"
-//    return "${getCrystaxNdkDir()}/sources/cxx-stl/gnu-libstdc++/${getToolchainVersion()}/libs/${abi}/thumb/libgnustl_static.a"
 }
 
 
