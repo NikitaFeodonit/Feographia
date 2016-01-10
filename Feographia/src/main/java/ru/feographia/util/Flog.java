@@ -27,7 +27,7 @@ import static android.util.Log.*;
 
 public class Flog
 {
-    private static final String mLogPrefix = "-Fg-\n\n\nFA: ";
+    private static final String mLogPrefix = "-Fg- FA: ";
 
 
     public static int d(String tag, String msg) {
