@@ -71,21 +71,50 @@ dependencies {
 //
 //
 //
-// capnproto Java
+// capnproto
+
+
+tasks.all {
+    task ->
+        if (task.name.equals("preBuild")) {
+            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
+//            task.dependsOn capnpJavaBuild, capnpFcoreBuild
+        }
+}
+
+//
+//
+//
+// capnproto Feographia (Java)
 
 
 model {
     android {
-        tasks.withType(JavaCompile) {
-            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
-//            compileTask -> compileTask.dependsOn capnpJavaBuild
-        }
+//        tasks.withType(JavaCompile) {
+//            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
+////            compileTask -> compileTask.dependsOn capnpJavaBuild
+//        }
 
         task capnpJavaBuild(type: Exec) {
             workingDir file('src/main/java/ru/feographia/capnproto')
             println workingDir
             commandLine getShell(), getShellArg(), getCapnpCmd()
             println commandLine
+        }
+    }
+}
+
+//
+//
+//
+// capnproto fcore (C++)
+
+
+model {
+    android {
+        task capnpFcoreBuild(type: Exec) {
+            workingDir file("${getFcoreModuleDir()}/src/fcore/capnproto")
+            commandLine getShell(), getShellArg(), getCapnpCmd()
         }
     }
 }
@@ -148,26 +177,6 @@ model {
                     "${getFcoreModuleDir()}/src",
                     "${getImportedLibsDir()}"
             ]
-        }
-    }
-}
-
-//
-//
-//
-// capnproto C++
-
-
-model {
-    android {
-        tasks.withType(JavaCompile) {
-            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto/*.capnp are modified
-//            compileTask -> compileTask.dependsOn capnpFcoreBuild
-        }
-
-        task capnpFcoreBuild(type: Exec) {
-            workingDir file("${getFcoreModuleDir()}/src/fcore/capnproto")
-            commandLine getShell(), getShellArg(), getCapnpCmd()
         }
     }
 }
@@ -349,7 +358,6 @@ task stripNativeLibs(dependsOn: copyNativeLibs) {
                     commandLine getStripExecutable(abi), "--strip-unneeded", "${getTargetLibDir(abi, buildType)}/lib${name}.so"
                 }
             }
-
         }
     }
 }
