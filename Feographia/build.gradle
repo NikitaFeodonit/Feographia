@@ -34,7 +34,7 @@ model {
         }
 
         compileSdkVersion = 23
-        buildToolsVersion = "23.0.1"
+        buildToolsVersion = "23.0.2"
 
         defaultConfig.with {
             minSdkVersion.apiLevel = 9
@@ -64,8 +64,8 @@ dependencies {
 //    compile project(':fcore')
     compile project(':jzmq')
     compile project(':capnproto-java')
-    compile 'com.android.support:appcompat-v7:23.0.1'
-    compile 'com.android.support:support-v4:23.0.1'
+    compile 'com.android.support:appcompat-v7:23.1.1'
+    compile 'com.android.support:support-v4:23.1.1'
 }
 
 //
@@ -190,7 +190,7 @@ model {
 //final APP_ABIS = ["armeabi", "armeabi-v7a", "x86"]
 final APP_ABIS = ["armeabi-v7a"]
 
-final BOOST_STATIC_LIBS = [
+final BOOST_LIBS = [
         "boost_log",
         "boost_chrono",
         "boost_thread",
@@ -212,11 +212,21 @@ def getBoostVersion()
 }
 
 
+def getLinkType()
+{
+    // also for shared linking uncomment / add System.loadLibrary() for each shared library
+    // in Feographia/src/main/java/ru/feographia/Fapp.java
+
+//    return "shared"
+    return "static"
+}
+
+
 model {
     android.ndk {
         moduleName = "fcore"
 
-//        debuggable = true
+//        debuggable = false
 //        renderscriptNdkMode = false
 
         platformVersion = 9
@@ -224,11 +234,19 @@ model {
         toolchain = "gcc"
         toolchainVersion = getToolchainVersion()
 
+        // for stl type see
         // http://developer.android.com/ndk/guides/cpp-support.html#runtimes
         // file:///<path to ndk>/docs/Programmers_Guide/html/md_3__key__topics__building__a_p_p_l_i_c_a_t_i_o_n-_m_k.html
-// TODO: make all (vars, methods) for shared, but boost must be only static
-//        stl = "gnustl_shared"
-        stl = "gnustl_static"
+
+        switch (getLinkType()) {
+            case "shared":
+                stl = "gnustl_shared"
+                break;
+
+            case "static":
+                stl = "gnustl_static"
+                break;
+        }
 
 //  ===  CFlags  ===
 
@@ -275,14 +293,14 @@ model {
 
                     abiFilters.add(abi)
 
-                    def libs = [:]
-                    BOOST_STATIC_LIBS.each { name ->
-                        libs[name] = "${getBoostLibDir(abi)}/lib${name}.a"
+                    def libs = []
+                    BOOST_LIBS.each { name -> // for boost static linking
+                        libs.add("${getBoostLibDir(abi)}/lib${name}.a")
                     }
-                    libs.gnustl_static = getGnuStlStaticLib(abi)
-                    libs.crystax = getCrystaxLib(abi)
+                    libs.add(getGnuStlLib(abi))
+                    libs.add(getCrystaxLib(abi))
 
-                    libs.each { name, file ->
+                    libs.each { file ->
                         ldFlags.add("" + "${file}")
                     }
                 }
@@ -292,9 +310,66 @@ model {
 }
 
 
+tasks.all {
+    task ->
+        if (getLinkType().equals("shared") && task.name.startsWith('link')) {
+            task.dependsOn copyNativeLibs, stripNativeLibs
+        }
+}
+
+
+task copyNativeLibs {
+    ["debug", "release"].each { buildType ->
+        APP_ABIS.each { abi ->
+            def libs = [:]
+            //BOOST_LIBS.each { name -> // for boost shared linking
+            //    libs[name] = "${getBoostLibDir(abi)}/lib${name}.so"
+            //}
+            libs.crystax = getCrystaxLibDir(abi)
+
+            libs.each { name, file ->
+                dependsOn tasks.create(name: "copy-native-library-${name}-${abi}-${buildType}", type: Copy) {
+                    from file
+                    into getTargetLibDir(abi, buildType)
+                }
+            }
+        }
+    }
+}
+
+task stripNativeLibs(dependsOn: copyNativeLibs) {
+    ["debug", "release"].each { buildType ->
+        APP_ABIS.each { abi ->
+            def libs = []
+            //libs.addAll(BOOST_LIBS) // for boost shared linking
+            libs.add("crystax")
+
+            libs.each { name ->
+                dependsOn tasks.create(name: "strip-native-library-${name}-${abi}-${buildType}", type: Exec) {
+                    commandLine getStripExecutable(abi), "--strip-unneeded", "${getTargetLibDir(abi, buildType)}/lib${name}.so"
+                }
+            }
+
+        }
+    }
+}
+
+
 def getFcoreModuleDir()
 {
     return "${rootDir}/fcore"
+}
+
+
+def getLibPostfix()
+{
+    switch (getLinkType()) {
+        case "shared":
+            return "so"
+
+        case "static":
+            return "a"
+    }
 }
 
 
@@ -470,19 +545,20 @@ def getCrystaxIncDir()
 
 def getCrystaxLibDir(abi)
 {
-    return "${getCrystaxDir()}/libs/${abi}"
+    return "${getCrystaxDir()}/libs/${abi}/thumb"
 }
 
 
 def getCrystaxLib(abi)
 {
-    return "${getCrystaxLibDir(abi)}/libcrystax.a"
+    return "${getCrystaxLibDir(abi)}/libcrystax.${getLibPostfix()}"
 }
 
 
-def getGnuStlStaticLib(abi)
+def getGnuStlLib(abi)
 {
-    return "${getCrystaxNdkDir()}/sources/cxx-stl/gnu-libstdc++/${getToolchainVersion()}/libs/${abi}/libgnustl_static.a"
+    return "${getCrystaxNdkDir()}/sources/cxx-stl/gnu-libstdc++/${getToolchainVersion()}" +
+            "/libs/${abi}/thumb/libgnustl_${getLinkType()}.${getLibPostfix()}"
 }
 
 
@@ -520,7 +596,8 @@ def getStripExecutable(abi)
     def toolchainPrefix = getToolchainPrefix(abi)
     def toolchainVersion = getToolchainVersion()
     def hostTag = getHostTag()
-    def strip = "${ndk}/toolchains/${toolchainName}-${toolchainVersion}/prebuilt/${hostTag}/bin/${toolchainPrefix}-strip"
+    def strip = "${ndk}/toolchains/${toolchainName}-${toolchainVersion}" +
+            "/prebuilt/${hostTag}/bin/${toolchainPrefix}-strip"
     if (OperatingSystem.current().isWindows()) {
         strip = strip.replaceAll('/', '\\\\') + '.exe'
     }

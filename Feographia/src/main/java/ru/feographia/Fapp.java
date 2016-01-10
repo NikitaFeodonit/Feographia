@@ -34,8 +34,8 @@ public class Fapp
 
 
     static {
-//        System.loadLibrary("crystax");
-//        System.loadLibrary("gnustl_shared");
+        //System.loadLibrary("crystax"); // need for shared linking on some devices
+        //System.loadLibrary("gnustl_shared"); // need for shared linking on some devices
         System.loadLibrary("fcore");
     }
 
