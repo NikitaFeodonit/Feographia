@@ -266,6 +266,7 @@ model {
 //  ===  cppFlags  ===
 
 //        cppFlags.add("-Wall")
+        cppFlags.add("-Wno-deprecated-declarations")
         cppFlags.add("-fexceptions")
         cppFlags.add("-frtti")
         cppFlags.add("-std=c++11")
