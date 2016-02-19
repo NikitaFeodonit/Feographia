@@ -34,6 +34,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
 import ru.feographia.fcore.Fcore;
+import ru.feographia.text.BibleReference;
 import ru.feographia.util.Flog;
 import ru.feographia.util.SystemUiHider;
 
@@ -118,18 +119,16 @@ public class MainActivity
                     @Override
                     public void onClick(View v)
                     {
-                        String path = "/sdcard/Feographia/test_html/";
-                        String filePath = path + "64-big.htm";
-
                         long time = System.currentTimeMillis();
 
-                        String fileText = null;
-                        try {
-                            fileText = fcore.getFileTextUtf16(filePath);
-                        } catch (IOException e) {
-                            Flog.d(TAG, e.getLocalizedMessage());
-                            e.printStackTrace();
-                        }
+                        String path = "/sdcard/Feographia/modules/";
+                        String text = getFragmentText(fcore);
+
+//                        String path = "/sdcard/Feographia/test_html/";
+//                        String text = getFileTextUtf16(fcore);
+
+//                        String path = "/sdcard/Feographia/modules/";
+//                        String text = createTestModule(fcore);
 
                         time = System.currentTimeMillis() - time;
                         Flog.d(TAG, "time: " + time);
@@ -139,7 +138,7 @@ public class MainActivity
                         // android.support.v7.widget
 
                         webView.loadDataWithBaseURL(
-                                "file://" + path, fileText, "text/html", "UTF-8", "about:config");
+                                "file://" + path, text, "text/html", "UTF-8", "about:config");
                     }
                 });
 
@@ -208,6 +207,77 @@ public class MainActivity
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
         btnLoadFile.setOnTouchListener(mDelayHideTouchListener);
+    }
+
+
+    public String getFragmentText(Fcore fcore)
+    {
+        try {
+            BibleReference fromReference = new BibleReference("Rom", (byte) 4, (byte) 24, (byte) 0);
+            BibleReference toReference = new BibleReference("Rom", (byte) 5, (byte) 3, (byte) 0);
+            String fragmentText = fcore.getFragmentText(fromReference, toReference);
+
+//            Flog.d(TAG, "fragmentText: " + fragmentText);
+
+            StringBuilder html = new StringBuilder();
+            html.append("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n");
+            html.append("<html>\n");
+            html.append("<head>\n");
+            html.append("<meta http-equiv=Content-Type content=\"text/html; charset=UTF-8\">\n");
+            html.append("</head>\n");
+            html.append("<body>\n");
+            html.append("<br>");
+            html.append(fragmentText);
+            html.append("</body>\n");
+            html.append("</html>");
+
+            return (html.toString());
+        } catch (IOException e) {
+            Flog.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
+            return (null);
+        }
+    }
+
+
+    public String createTestModule(Fcore fcore)
+    {
+        try {
+            String path = "/sdcard/Feographia/modules/";
+            String modulePath = path + "testmodule";
+
+            StringBuilder html = new StringBuilder();
+            html.append("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\">\n");
+            html.append("<html>\n");
+            html.append("<head>\n");
+            html.append("<meta http-equiv=Content-Type content=\"text/html; charset=UTF-8\">\n");
+            html.append("</head>\n");
+            html.append("<body>\n");
+            html.append("<br>");
+            html.append(fcore.createTestModule(modulePath));
+            html.append("</body>\n");
+            html.append("</html>");
+
+            return (html.toString());
+        } catch (IOException e) {
+            Flog.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
+            return (null);
+        }
+    }
+
+
+    public String getFileTextUtf16(Fcore fcore)
+    {
+        try {
+            String path = "/sdcard/Feographia/test_html/";
+            String filePath = path + "64-big.htm";
+            return (fcore.getFileTextUtf16(filePath));
+        } catch (IOException e) {
+            Flog.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
+            return (null);
+        }
     }
 
 

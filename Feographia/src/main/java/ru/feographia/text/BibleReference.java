@@ -21,73 +21,76 @@
 
 package ru.feographia.text;
 
+import ru.feographia.capnproto.FcConst;
+
+
 public class BibleReference
 {
     protected static final String TAG = BibleReference.class.getName();
 
-    private String mBookID      = "Gen";
-    private int    mChapterId   = 1;
-    private int    mFromVerseId = 1;
-    private int    mToVerseId   = 1;
+    protected String mBookId        = "Gen";
+    protected byte   mChapterId     = 1;
+    protected byte   mVerseId       = 1;
+    protected byte   mWordInVerseId = FcConst.UNKNOWN_ID;
 
 
     public BibleReference(
-            String bookID,
-            int chapterId,
-            int fromVerseId,
-            int toVerseId)
+            String bookId,
+            byte chapterId,
+            byte verseId,
+            byte wordInVerseId)
     {
-        mBookID = bookID;
+        mBookId = bookId;
         mChapterId = chapterId;
-        mFromVerseId = fromVerseId;
-        mToVerseId = toVerseId;
+        mVerseId = verseId;
+        mWordInVerseId = wordInVerseId;
     }
 
 
-    public String getBookID()
+    public String getBookId()
     {
-        return mBookID;
+        return mBookId;
     }
 
 
-    public void setBookID(String bookID)
+    public void setBookId(String bookId)
     {
-        mBookID = bookID;
+        mBookId = bookId;
     }
 
 
-    public int getChapterId()
+    public byte getChapterId()
     {
         return mChapterId;
     }
 
 
-    public void setChapterId(int chapterId)
+    public void setChapterId(byte chapterId)
     {
         mChapterId = chapterId;
     }
 
 
-    public int getFromVerseId()
+    public byte getVerseId()
     {
-        return mFromVerseId;
+        return mVerseId;
     }
 
 
-    public void setFromVerseId(int fromVerseId)
+    public void setVerseId(byte verseId)
     {
-        mFromVerseId = fromVerseId;
+        mVerseId = verseId;
     }
 
 
-    public int getToVerseId()
+    public byte getWordInVerseId()
     {
-        return mToVerseId;
+        return mWordInVerseId;
     }
 
 
-    public void setToVerseId(int toVerseId)
+    public void setWordInVerseId(byte wordInVerseId)
     {
-        mToVerseId = toVerseId;
+        mWordInVerseId = wordInVerseId;
     }
 }

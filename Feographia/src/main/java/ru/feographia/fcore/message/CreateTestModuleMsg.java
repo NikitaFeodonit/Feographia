@@ -25,27 +25,26 @@ import org.capnproto.AnyPointer;
 import org.zeromq.ZMQ;
 import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
-import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
 
 
-public class GetChapterTextMsg
+public class CreateTestModuleMsg
         extends FcoreMsg
 {
-    protected static final String TAG = GetChapterTextMsg.class.getName();
+    protected static final String TAG = CreateTestModuleMsg.class.getName();
 
-    protected BibleReference mReference;
-    protected String mChapterText = null;
+    protected String mModulePath;
+    protected String mReportText = null;
 
 
-    public GetChapterTextMsg(
+    public CreateTestModuleMsg(
             ZMQ.Socket zmqFCoreSocket,
-            BibleReference reference)
+            String modulePath)
     {
         super(zmqFCoreSocket);
-        mMsgType = FcConst.MSG_TYPE_GET_CHAPTER_TEXT;
-        mReference = reference;
+        mMsgType = FcConst.MSG_TYPE_CREATE_TEST_MODULE;
+        mModulePath = modulePath;
     }
 
 
@@ -53,13 +52,8 @@ public class GetChapterTextMsg
     protected void setDataQ(AnyPointer.Builder dataPtrQ)
     {
         // set the query data
-        FcMsg.GetChapterQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetChapterQ.factory);
-        FcMsg.Reference.Builder ref = dataQ.initReference();
-
-        ref.setBookId(mReference.getBookID());
-        ref.setChapterId(mReference.getChapterId());
-        ref.setFromVerseId(mReference.getFromVerseId());
-        ref.setToVerseId(mReference.getToVerseId());
+        FcMsg.CreateTestModuleQ.Builder dataQ = dataPtrQ.initAs(FcMsg.CreateTestModuleQ.factory);
+        dataQ.setModulePath(mModulePath);
     }
 
 
@@ -69,18 +63,18 @@ public class GetChapterTextMsg
     {
         // get the reply data
         AnyPointer.Reader dataPtrR = super.msgWorker();
-        FcMsg.GetChapterR.Reader dataR = dataPtrR.getAs(FcMsg.GetChapterR.factory);
-        mChapterText = dataR.getChapterText().toString();
+        FcMsg.CreateTestModuleR.Reader dataR = dataPtrR.getAs(FcMsg.CreateTestModuleR.factory);
+        mReportText = dataR.getReportText().toString();
         return dataPtrR;
     }
 
 
-    public String getChapterText()
+    public String getReportText()
             throws IOException
     {
-        if (null == mChapterText) {
+        if (null == mReportText) {
             msgWorker();
         }
-        return mChapterText;
+        return mReportText;
     }
 }

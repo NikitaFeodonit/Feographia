@@ -22,9 +22,10 @@
 package ru.feographia.fcore;
 
 import org.zeromq.ZMQ;
-import ru.feographia.fcore.message.GetChapterTextMsg;
-import ru.feographia.fcore.message.GetFileTextMsg;
 import ru.feographia.capnproto.FcConst;
+import ru.feographia.fcore.message.CreateTestModuleMsg;
+import ru.feographia.fcore.message.GetFileTextMsg;
+import ru.feographia.fcore.message.GetFragmentTextMsg;
 import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
@@ -34,14 +35,13 @@ public final class Fcore
 {
     protected static final String TAG = Fcore.class.getName();
 
-
     protected long        mZmqContextPointer;
     protected ZMQ.Context mZmqContext;
     protected ZMQ.Socket  mZmqFCoreSocket;
 
 
     // native static and non-static:
-    // http://stackoverflow.com/a/15254300/4727406
+    // http://stackoverflow.com/a/15254300
     private native long fcoreRunMainThread();
 
 
@@ -55,14 +55,24 @@ public final class Fcore
     }
 
 
-    public String getChapterText(BibleReference reference)
+    public String getFragmentText(
+            BibleReference fromReference,
+            BibleReference toReference)
             throws IOException
     {
-        return new GetChapterTextMsg(mZmqFCoreSocket, reference).getChapterText();
+        return new GetFragmentTextMsg(
+                mZmqFCoreSocket, fromReference, toReference).getFragmentText();
     }
 
 
     // for test
+    public String createTestModule(String modulePath)
+            throws IOException
+    {
+        return new CreateTestModuleMsg(mZmqFCoreSocket, modulePath).getReportText();
+    }
+
+
     public String getFileTextUtf16(String filePath)
             throws IOException
     {
