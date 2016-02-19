@@ -1,0 +1,308 @@
+/*
+ * Project:  Feographia
+ * Purpose:  Mobile application to work with the biblical text
+ * Authors:  NikitaFeodonit, nfeodonit@yandex.com
+ * ****************************************************************************
+ * Copyright (C) 2015 NikitaFeodonit
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+apply plugin: 'com.android.model.library'
+
+
+model {
+    android {
+        compileSdkVersion = 23
+        buildToolsVersion = "23.0.1"
+
+        defaultConfig.with {
+            minSdkVersion.apiLevel = 9
+            targetSdkVersion.apiLevel = 23
+            versionCode = 1
+            versionName = "0.1"
+        }
+
+// compile native
+
+        task capnpBuild(type: Exec) {
+            workingDir file('src/fcore/capnproto')
+            if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+                commandLine getWinCmd(), getWinCmdArg(), getCapnpCmd()
+            } else {
+                // TODO: for others (linux ...)
+            }
+        }
+
+        // call regular ndk-build(.cmd) script from app directory
+        task ndkBuild(type: Exec) {
+            // uncomment it if <Feographia_Android>/fcore/src/fcore/capnproto.capnp are modified
+            //dependsOn capnpBuild
+            workingDir file('android-nkd')
+            commandLine getNdkBuildCmd()
+        }
+
+        tasks.withType(JavaCompile) {
+//            compileTask -> compileTask.dependsOn ndkBuild
+        }
+
+// clean native
+
+        task cleanNative(type: Exec) {
+            workingDir file('android-nkd')
+            commandLine getNdkBuildCmd(), 'clean'
+        }
+
+//        clean.dependsOn cleanNative
+
+// http://ph0b.com/new-android-studio-ndk-support/
+
+        // http://ph0b.com/new-android-studio-ndk-support/#comment-50870
+        // To fall back to Android.mk/Application.mk,
+        // I prefer to provide the actual jni directory (or directories), but disable the build step:
+//        tasks.all {
+//            task -> if (task.name.contains('compileDebugNdk')
+//                    || task.name.contains('compileReleaseNdk')
+//            )
+//                task.enabled = false
+//        }
+
+        tasks.all {
+            task -> if (true)
+                task.enabled = false
+        }
+    }
+
+// for new experimental gradle version 0.4.0
+// http://stackoverflow.com/a/31805506
+//    manifest.srcFile = 'main/AndroidManifest.xml'
+//    android.sources {
+//        main {
+//            manifest.source {
+//                srcDir 'main'
+//                include 'AndroidManifest.xml'
+//            }
+//            java.source.srcDirs = ['src/main/java']
+//        }
+//    }
+
+// all android.sources values
+// (from sources,
+// http://jcenter.bintray.com/com/android/tools/build/gradle-experimental/0.4.0/gradle-experimental-0.4.0-sources.jar
+// )
+//    android.sources {
+//        main {
+//            manifest.source.srcFile = 'main/AndroidManifest.xml'
+//
+//            java.source.srcDirs = ['src/main/jni', '../../../common']
+//            res.source.srcDirs = ['src/main/jni', '../../../common']
+//            assets.source.srcDirs = ['src/main/jni', '../../../common']
+//
+//            jni.source.srcDirs = ['src/main/jni', '../../../common']
+//            jniLibs.source.srcDirs = ['src/main/jni', '../../../common']
+//
+//            resources.source.srcDirs = ['src/main/jni', '../../../common']
+//            aidl.source.srcDirs = ['src/main/jni', '../../../common']
+//            renderscript.source.srcDirs = ['src/main/jni', '../../../common']
+//
+// form old version // sourceSets.androidTest.setRoot('src/androidTest') // tests
+//        }
+//    }
+
+
+    android.sources {
+        main {
+            // TODO: change it for not experimental gradle version
+            // to like this
+            // sourceSets.main.manifest.srcFile 'android-nkd/AndroidManifest.xml'
+            manifest.source {
+                srcDir 'android-nkd'
+                include 'AndroidManifest.xml'
+            }
+
+            res.source.srcDirs = ['android-nkd/res']
+
+//            jniLibs.source.srcDirs = ['android-nkd/libs']
+
+            // TODO: use productFlavors or buildTypes
+            // for project compiling and assembling
+            // Comment it for source editing in Android Studio.
+            jni.source.srcDirs = [] // disable automatic ndk-build call, which ignore our Android.mk
+
+            // Only for source editing in Android Studio, not for project compiling and assembling.
+            // Uncomment it for source editing in Android Studio.
+            // See also android.ndk
+//            jni.source.srcDirs = ['src']
+            // TODO: all libs in one dir
+//            jni.source.srcDirs = [
+//                    'src',
+//                    'libs',
+//                    'prebuild-libs'
+//            ]
+        }
+    }
+
+    // Only for source editing in Android Studio, not for compiling.
+    // Has no effect if jni.source.srcDirs = []
+    // Keeping it to make AS correctly support C++ code editing and debugging
+    android.ndk {
+        moduleName = "fcore"
+
+        platformVersion = 9
+
+        toolchain = "gcc"
+        toolchainVersion = "4.9"
+        abiFilters.add("armeabi-v7a")
+
+//        debuggable = true
+//        renderscriptNdkMode = false
+
+        // http://developer.android.com/ndk/guides/cpp-support.html#runtimes
+        // file:///<path to ndk>/docs/Programmers_Guide/html/md_3__key__topics__building__a_p_p_l_i_c_a_t_i_o_n-_m_k.html
+//        stl = "gnustl_shared"
+        stl = "gnustl_static" // may be for release
+
+// see used flags in compilation
+// <fcore>/build/tmp/compileArmeabi-v7a<Debug|Release>FcoreSharedLibraryFcoreMainC/options.txt
+// <fcore>/build/tmp/compileArmeabi-v7a<Debug|Release>FcoreSharedLibraryFcoreMainCpp/options.txt
+// <fcore>/build/tmp/linkArmeabi-v7a<Debug|Release>FcoreSharedLibrary/options.txt
+
+// ndk-build debug output for used flags
+// ndk-build[.cmd] V=1
+
+        // Produce debugging information in the operating system's native format
+        // (stabs, COFF, XCOFF, or DWARF 2). GDB can work with this debugging information.
+//        cppFlags.add("-g")
+
+//        cppFlags.add("-Wall")
+
+//  ===  CFlags  ===
+
+        CFlags.add("-DSQLITE_THREADSAFE=2")
+
+        CFlags.add("-I${file("libs/sqlite/src")}".toString())
+        CFlags.add("-I${file(getNdkDir() + "/sources/crystax/include")}".toString())
+
+//  ===  cppFlags  ===
+
+        cppFlags.add("-fexceptions")
+        cppFlags.add("-frtti")
+        cppFlags.add("-std=c++11")
+
+        cppFlags.add("-I${file("src")}".toString())
+        cppFlags.add("-I${file("prebuild-libs/zeromq/include")}".toString())
+        cppFlags.add("-I${file("prebuild-libs/capnproto-cpp/include")}".toString())
+        cppFlags.add("-I${file("libs/SQLiteCpp/src/include")}".toString())
+        cppFlags.add("-I${file("libs/sqlite/src")}".toString())
+
+        cppFlags.add("-I${file(getNdkDir() + "/sources/boost/1.58.0/include")}".toString())
+        cppFlags.add("-I${file(getNdkDir() + "/sources/crystax/include")}".toString())
+
+//  ===  ldFlags  ===
+
+        ldFlags.add("-Wl,--whole-archive")
+        ldFlags.add("${file("prebuild-libs/zeromq/lib/libjzmq.a")}".toString())
+        ldFlags.add("-Wl,--no-whole-archive")
+        ldFlags.add("${file("prebuild-libs/zeromq/lib/libzmq.a")}".toString())
+
+        ldFlags.add("${file("prebuild-libs/capnproto-cpp/lib/libcapnp.a")}".toString())
+        ldFlags.add("${file("prebuild-libs/capnproto-cpp/lib/libkj.a")}".toString())
+
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_log.a")}".toString())
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_chrono.a")}".toString())
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_thread.a")}".toString())
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_date_time.a")}".toString())
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_filesystem.a")}".toString())
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_regex.a")}".toString())
+
+        ldFlags.add("${file(getNdkDir() + "/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi-v7a/thumb/libgnustl_static.a")}".toString())
+
+        ldFlags.add("${file(getNdkDir() + "/sources/boost/1.58.0/libs/armeabi-v7a/libboost_system.a")}".toString())
+
+        ldFlags.add("-llog")
+
+        ldFlags.add("-L${file(getNdkDir() + "/sources/crystax/empty")}".toString())
+
+        ldFlags.add("${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.a")}".toString())
+//        ldFlags.add("${file(getNdkDir() + "/sources/crystax/libs/armeabi-v7a/thumb/libcrystax.so")}".toString())
+    }
+
+
+    android.buildTypes {
+        release {
+            minifyEnabled = false
+            proguardFiles.add(file('proguard-rules.pro'))
+        }
+    }
+}
+
+
+dependencies {
+//    compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+
+def getNdkDir() {
+    if (System.env.ANDROID_NDK_ROOT != null)
+        return System.env.ANDROID_NDK_ROOT
+
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def ndkdir = properties.getProperty('ndk.dir', null)
+    if (ndkdir == null)
+        throw new GradleException("NDK location not found. Define location with ndk.dir " +
+                "in the local.properties file or with an ANDROID_NDK_ROOT environment variable.")
+
+    return ndkdir
+}
+
+
+def getNdkBuildCmd() {
+    def ndkbuild = getNdkDir() + "/ndk-build"
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        ndkbuild += ".cmd"
+    }
+    return ndkbuild
+}
+
+
+def getWinCmd() {
+    def winCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        winCmd = "cmd"
+    }
+    return winCmd
+}
+
+
+def getWinCmdArg() {
+    def winCmdArg = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        winCmdArg = "/c"
+    }
+    return winCmdArg
+}
+
+
+def getCapnpCmd() {
+    def capnpCmd = ""
+    if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+        capnpCmd = "capnp-main.cmd"
+    } else {
+        // TODO: for others (linux ...)
+    }
+    return capnpCmd
+}
