@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ru.feographia.fcore.message;
 
 import org.capnproto.AnyPointer;
@@ -28,50 +27,47 @@ import ru.feographia.capnproto.FcMsg;
 import java.io.IOException;
 
 
-public class CreateTestModuleMsg
-        extends FcoreMsg
+public class CreateTestModuleMsg extends FcoreMsg
 {
-    protected static final String TAG = CreateTestModuleMsg.class.getName();
+  protected static final String TAG = CreateTestModuleMsg.class.getName();
 
-    protected String mModulePath;
-    protected String mReportText = null;
+  protected String mModulePath;
+  protected String mReportText = null;
 
 
-    public CreateTestModuleMsg(String modulePath)
-    {
-        super();
-        mMsgType = FcConst.MSG_TYPE_CREATE_TEST_MODULE;
-        mModulePath = modulePath;
+  public CreateTestModuleMsg(String modulePath)
+  {
+    super();
+    mMsgType = FcConst.MSG_TYPE_CREATE_TEST_MODULE;
+    mModulePath = modulePath;
+  }
+
+
+  @Override
+  protected void setDataQ(AnyPointer.Builder dataPtrQ)
+  {
+    // set the query data
+    FcMsg.CreateTestModuleQ.Builder dataQ = dataPtrQ.initAs(FcMsg.CreateTestModuleQ.factory);
+    dataQ.setModulePath(mModulePath);
+  }
+
+
+  @Override
+  protected AnyPointer.Reader msgWorker() throws IOException
+  {
+    // get the reply data
+    AnyPointer.Reader              dataPtrR = super.msgWorker();
+    FcMsg.CreateTestModuleR.Reader dataR = dataPtrR.getAs(FcMsg.CreateTestModuleR.factory);
+    mReportText = dataR.getReportText().toString();
+    return (dataPtrR);
+  }
+
+
+  public String getReportText() throws IOException
+  {
+    if (null == mReportText) {
+      msgWorker();
     }
-
-
-    @Override
-    protected void setDataQ(AnyPointer.Builder dataPtrQ)
-    {
-        // set the query data
-        FcMsg.CreateTestModuleQ.Builder dataQ = dataPtrQ.initAs(FcMsg.CreateTestModuleQ.factory);
-        dataQ.setModulePath(mModulePath);
-    }
-
-
-    @Override
-    protected AnyPointer.Reader msgWorker()
-            throws IOException
-    {
-        // get the reply data
-        AnyPointer.Reader dataPtrR = super.msgWorker();
-        FcMsg.CreateTestModuleR.Reader dataR = dataPtrR.getAs(FcMsg.CreateTestModuleR.factory);
-        mReportText = dataR.getReportText().toString();
-        return dataPtrR;
-    }
-
-
-    public String getReportText()
-            throws IOException
-    {
-        if (null == mReportText) {
-            msgWorker();
-        }
-        return mReportText;
-    }
+    return (mReportText);
+  }
 }

@@ -18,42 +18,40 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ru.feographia;
 
 import android.app.Application;
 import ru.feographia.fcore.Fcore;
 
 
-public class Fapp
-        extends Application
+public class Fapp extends Application
 {
-    protected static final String TAG = Fapp.class.getName();
+  protected static final String TAG = Fapp.class.getName();
 
-    protected Fcore mFcore;
-
-
-    static {
-        //System.loadLibrary("crystax"); // need for shared linking on some devices
-        //System.loadLibrary("gnustl_shared"); // need for shared linking on some devices
-        System.loadLibrary("fcore");
-    }
+  protected Fcore mFcore;
 
 
-    @Override
-    public void onCreate()
-    {
-        // For service debug
+  static {
+    //System.loadLibrary("crystax"); // need for shared linking on some devices
+    //System.loadLibrary("gnustl_shared"); // need for shared linking on some devices
+    System.loadLibrary("fcore");
+  }
+
+
+  @Override
+  public void onCreate()
+  {
+    // For service debug
 //        android.os.Debug.waitForDebugger();
 
-        super.onCreate();
+    super.onCreate();
 
-        mFcore = new Fcore();
-    }
+    mFcore = new Fcore();
+  }
 
 
-    public Fcore getFcore()
-    {
-        return mFcore;
-    }
+  public Fcore getFcore()
+  {
+    return (mFcore);
+  }
 }

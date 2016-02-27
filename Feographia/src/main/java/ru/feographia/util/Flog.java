@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ru.feographia.util;
 
 import android.util.Log;
@@ -27,14 +26,21 @@ import static android.util.Log.*;
 
 public class Flog
 {
-    private static final String mLogPrefix = "-Fg- FA: ";
+  private static final String mLogPrefix = "-Fg- FA: ";
 
 
-    public static int d(String tag, String msg) {
-        return Log.println(DEBUG, tag, mLogPrefix + msg);
-    }
+  public static int d(
+      String tag,
+      String msg)
+  {
+    return (Log.println(DEBUG, tag, mLogPrefix + msg));
+  }
 
-    public static int i(String tag, String msg) {
-        return Log.println(INFO, tag, mLogPrefix + msg);
-    }
+
+  public static int i(
+      String tag,
+      String msg)
+  {
+    return (Log.println(INFO, tag, mLogPrefix + msg));
+  }
 }

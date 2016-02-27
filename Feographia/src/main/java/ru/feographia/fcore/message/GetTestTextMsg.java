@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ru.feographia.fcore.message;
 
 import org.capnproto.AnyPointer;
@@ -28,57 +27,54 @@ import ru.feographia.capnproto.FcMsg;
 import java.io.IOException;
 
 
-public class GetTestTextMsg
-        extends FcoreMsg
+public class GetTestTextMsg extends FcoreMsg
 {
-    protected static final String TAG = GetTestTextMsg.class.getName();
+  protected static final String TAG = GetTestTextMsg.class.getName();
 
-    protected String mTestPath;
-    protected String mTestText = null;
-
-
-    public GetTestTextMsg(String testPath)
-    {
-        super();
-        mMsgType = FcConst.MSG_TYPE_GET_TEST_TEXT;
-        mTestPath = testPath;
-    }
+  protected String mTestPath;
+  protected String mTestText = null;
 
 
-    @Override
-    protected void setDataQ(AnyPointer.Builder dataPtrQ)
-    {
-        // set the query data
-        FcMsg.GetTestTextQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetTestTextQ.factory);
-        dataQ.setTestPath(mTestPath);
-    }
+  public GetTestTextMsg(String testPath)
+  {
+    super();
+    mMsgType = FcConst.MSG_TYPE_GET_TEST_TEXT;
+    mTestPath = testPath;
+  }
 
 
-    @Override
-    protected AnyPointer.Reader msgWorker()
-            throws IOException
-    {
-        // get the reply data
-        AnyPointer.Reader dataPtrR = super.msgWorker();
-        FcMsg.GetTestTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetTestTextR.factory);
+  @Override
+  protected void setDataQ(AnyPointer.Builder dataPtrQ)
+  {
+    // set the query data
+    FcMsg.GetTestTextQ.Builder dataQ = dataPtrQ.initAs(FcMsg.GetTestTextQ.factory);
+    dataQ.setTestPath(mTestPath);
+  }
 
-        // TODO: send utf16 text from C++ core
-        mTestText = dataR.getTestText().toString();
 
-        // for test without String's conversion to UTF-16
+  @Override
+  protected AnyPointer.Reader msgWorker() throws IOException
+  {
+    // get the reply data
+    AnyPointer.Reader         dataPtrR = super.msgWorker();
+    FcMsg.GetTestTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetTestTextR.factory);
+
+    // TODO: send utf16 text from C++ core
+    mTestText = dataR.getTestText().toString();
+
+    // for test without String's conversion to UTF-16
 //        org.capnproto.Text.Reader r = dataR.getTestText();
 //        mTestText = "";
 
-        return dataPtrR;
-    }
+    return (dataPtrR);
+  }  /* msgWorker */
 
 
-    public String getTestText()
-            throws IOException
-    {
-        if (null == mTestText) {
-            msgWorker();
-        }
-        return mTestText;
+  public String getTestText() throws IOException
+  {
+    if (null == mTestText) {
+      msgWorker();
     }
+    return (mTestText);
+  }
 }

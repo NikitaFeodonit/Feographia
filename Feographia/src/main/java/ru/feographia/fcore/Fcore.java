@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ru.feographia.fcore;
 
 import ru.feographia.fcore.message.CreateTestModuleMsg;
@@ -32,47 +31,43 @@ import java.io.IOException;
 
 public final class Fcore
 {
-    protected static final String TAG = Fcore.class.getName();
+  protected static final String TAG = Fcore.class.getName();
 
 
-    // native static and non-static:
-    // http://stackoverflow.com/a/15254300
-    private native void fcoreInit();
+  // native static and non-static:
+  // http://stackoverflow.com/a/15254300
+  private native void fcoreInit();
 
 
-    public Fcore()
-    {
-        fcoreInit();
-    }
+  public Fcore()
+  {
+    fcoreInit();
+  }
 
 
-    public String getFragmentText(
-            BibleReference fromReference,
-            BibleReference toReference)
-            throws IOException
-    {
-        return new GetFragmentTextMsg(fromReference, toReference).getFragmentText();
-    }
+  public String getFragmentText(
+      BibleReference fromReference,
+      BibleReference toReference) throws IOException
+  {
+    return (new GetFragmentTextMsg(fromReference, toReference).getFragmentText());
+  }
 
 
-    // for test
-    public String createTestModule(String modulePath)
-            throws IOException
-    {
-        return new CreateTestModuleMsg(modulePath).getReportText();
-    }
+  // for test
+  public String createTestModule(String modulePath) throws IOException
+  {
+    return (new CreateTestModuleMsg(modulePath).getReportText());
+  }
 
 
-    public String getFileTextUtf16(String filePath)
-            throws IOException
-    {
-        return new GetFileTextMsg(filePath).getFileText();
-    }
+  public String getFileTextUtf16(String filePath) throws IOException
+  {
+    return (new GetFileTextMsg(filePath).getFileText());
+  }
 
 
-    public String getTestTextUtf16(String testPath)
-            throws IOException
-    {
-        return new GetTestTextMsg(testPath).getTestText();
-    }
+  public String getTestTextUtf16(String testPath) throws IOException
+  {
+    return (new GetTestTextMsg(testPath).getTestText());
+  }
 }

@@ -18,7 +18,6 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package ru.feographia.text;
 
 import ru.feographia.capnproto.FcConst;
@@ -26,71 +25,71 @@ import ru.feographia.capnproto.FcConst;
 
 public class BibleReference
 {
-    protected static final String TAG = BibleReference.class.getName();
+  protected static final String TAG = BibleReference.class.getName();
 
-    protected String mBookId        = "Gen";
-    protected byte   mChapterId     = 1;
-    protected byte   mVerseId       = 1;
-    protected byte   mWordInVerseId = FcConst.UNKNOWN_ID;
-
-
-    public BibleReference(
-            String bookId,
-            byte chapterId,
-            byte verseId,
-            byte wordInVerseId)
-    {
-        mBookId = bookId;
-        mChapterId = chapterId;
-        mVerseId = verseId;
-        mWordInVerseId = wordInVerseId;
-    }
+  protected String mBookId        = "Gen";
+  protected byte   mChapterId     = 1;
+  protected byte   mVerseId       = 1;
+  protected byte   mWordInVerseId = FcConst.UNKNOWN_ID;
 
 
-    public String getBookId()
-    {
-        return mBookId;
-    }
+  public BibleReference(
+      String bookId,
+      byte   chapterId,
+      byte   verseId,
+      byte   wordInVerseId)
+  {
+    mBookId = bookId;
+    mChapterId = chapterId;
+    mVerseId = verseId;
+    mWordInVerseId = wordInVerseId;
+  }
 
 
-    public void setBookId(String bookId)
-    {
-        mBookId = bookId;
-    }
+  public String getBookId()
+  {
+    return (mBookId);
+  }
 
 
-    public byte getChapterId()
-    {
-        return mChapterId;
-    }
+  public void setBookId(String bookId)
+  {
+    mBookId = bookId;
+  }
 
 
-    public void setChapterId(byte chapterId)
-    {
-        mChapterId = chapterId;
-    }
+  public byte getChapterId()
+  {
+    return (mChapterId);
+  }
 
 
-    public byte getVerseId()
-    {
-        return mVerseId;
-    }
+  public void setChapterId(byte chapterId)
+  {
+    mChapterId = chapterId;
+  }
 
 
-    public void setVerseId(byte verseId)
-    {
-        mVerseId = verseId;
-    }
+  public byte getVerseId()
+  {
+    return (mVerseId);
+  }
 
 
-    public byte getWordInVerseId()
-    {
-        return mWordInVerseId;
-    }
+  public void setVerseId(byte verseId)
+  {
+    mVerseId = verseId;
+  }
 
 
-    public void setWordInVerseId(byte wordInVerseId)
-    {
-        mWordInVerseId = wordInVerseId;
-    }
+  public byte getWordInVerseId()
+  {
+    return (mWordInVerseId);
+  }
+
+
+  public void setWordInVerseId(byte wordInVerseId)
+  {
+    mWordInVerseId = wordInVerseId;
+  }
 }
