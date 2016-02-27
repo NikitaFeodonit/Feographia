@@ -21,8 +21,6 @@
 
 package ru.feographia.fcore;
 
-import org.zeromq.ZMQ;
-import ru.feographia.capnproto.FcConst;
 import ru.feographia.fcore.message.CreateTestModuleMsg;
 import ru.feographia.fcore.message.GetFileTextMsg;
 import ru.feographia.fcore.message.GetFragmentTextMsg;
@@ -36,23 +34,15 @@ public final class Fcore
 {
     protected static final String TAG = Fcore.class.getName();
 
-    protected long        mZmqContextPointer;
-    protected ZMQ.Context mZmqContext;
-    protected ZMQ.Socket  mZmqFCoreSocket;
-
 
     // native static and non-static:
     // http://stackoverflow.com/a/15254300
-    private native long fcoreRunMainThread();
+    private native void fcoreInit();
 
 
     public Fcore()
     {
-        mZmqContextPointer = fcoreRunMainThread();
-        mZmqContext = ZMQ.existingContext(mZmqContextPointer);
-
-        mZmqFCoreSocket = mZmqContext.socket(ZMQ.PAIR);
-        mZmqFCoreSocket.connect(FcConst.INPROC_FCORE.toString());
+        fcoreInit();
     }
 
 
@@ -61,8 +51,7 @@ public final class Fcore
             BibleReference toReference)
             throws IOException
     {
-        return new GetFragmentTextMsg(
-                mZmqFCoreSocket, fromReference, toReference).getFragmentText();
+        return new GetFragmentTextMsg(fromReference, toReference).getFragmentText();
     }
 
 
@@ -70,20 +59,20 @@ public final class Fcore
     public String createTestModule(String modulePath)
             throws IOException
     {
-        return new CreateTestModuleMsg(mZmqFCoreSocket, modulePath).getReportText();
+        return new CreateTestModuleMsg(modulePath).getReportText();
     }
 
 
     public String getFileTextUtf16(String filePath)
             throws IOException
     {
-        return new GetFileTextMsg(mZmqFCoreSocket, filePath).getFileText();
+        return new GetFileTextMsg(filePath).getFileText();
     }
 
 
     public String getTestTextUtf16(String testPath)
             throws IOException
     {
-        return new GetTestTextMsg(mZmqFCoreSocket, testPath).getTestText();
+        return new GetTestTextMsg(testPath).getTestText();
     }
 }

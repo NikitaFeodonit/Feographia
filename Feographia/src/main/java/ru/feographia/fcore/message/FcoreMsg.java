@@ -27,7 +27,6 @@ import org.capnproto.ArrayOutputStream;
 import org.capnproto.MessageBuilder;
 import org.capnproto.MessageReader;
 import org.capnproto.Serialize;
-import org.zeromq.ZMQ;
 import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
 
@@ -40,8 +39,7 @@ public abstract class FcoreMsg
 {
     protected static final String TAG = FcoreMsg.class.getName();
 
-    protected ZMQ.Socket mZmqFCoreSocket;
-    protected int        mMsgType;
+    protected int mMsgType;
 
 
     private native static byte[] fcoreSendMessage(ByteBuffer segmentsQuery);
@@ -49,9 +47,8 @@ public abstract class FcoreMsg
     protected abstract void setDataQ(AnyPointer.Builder dataPtrQ);
 
 
-    public FcoreMsg(ZMQ.Socket zmqFCoreSocket)
+    public FcoreMsg()
     {
-        mZmqFCoreSocket = zmqFCoreSocket;
         mMsgType = FcConst.MSG_TYPE_UNKNOWN;
     }
 
@@ -59,26 +56,12 @@ public abstract class FcoreMsg
     protected AnyPointer.Reader msgWorker()
             throws IOException
     {
-        // create new query
-        MessageBuilder cpnQuery = new MessageBuilder();
-        FcMsg.Message.Builder msgQ = cpnQuery.initRoot(FcMsg.Message.factory);
-
-        // set the query type
-        msgQ.setMsgType(mMsgType);
-
-        // set the query data
-        AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
-        setDataQ(dataPtrQ);
-
         // with ZeroMQ
         // (100 iter)  [1000000 bytes] 7800 ms
         // (1000 iter) [9 bytes]        460 ms
         // (1 iter)    [1000000 bytes]   70 ms
         // (1000 iter) [9 bytes]        1-2 ms
 
-        // send query and receive reply
-//        sendZmqMessage(cpnQuery);
-//        MessageReader cpnReply = receiveZmqMessage();
 
         // without ZeroMQ
         // (100 iter)  [1000000 bytes] 7400 ms
@@ -107,8 +90,19 @@ public abstract class FcoreMsg
         // (1 iter)   [10000000 bytes]   206 ms + one copy operation --  30 ms
 
 
+        // create new query
+        MessageBuilder cpnQuery = new MessageBuilder();
+        FcMsg.Message.Builder msgQ = cpnQuery.initRoot(FcMsg.Message.factory);
+
+        // set the query type
+        msgQ.setMsgType(mMsgType);
+
+        // set the query data
+        AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
+        setDataQ(dataPtrQ);
+
         // send query and receive reply
-        MessageReader cpnReply = sendMessage(cpnQuery);
+        MessageReader cpnReply = fcoreSendMessage(cpnQuery);
 
         // get the reply
         FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
@@ -134,32 +128,7 @@ public abstract class FcoreMsg
     }
 
 
-    protected boolean sendZmqMessage(MessageBuilder messageQuery)
-            throws IOException
-    {
-        int sendBufferSize = (int) Serialize.computeSerializedSizeInWords(messageQuery) * 8;
-        ByteBuffer buffer = ByteBuffer.allocateDirect(sendBufferSize);
-
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        ArrayOutputStream aos = new ArrayOutputStream(buffer);
-        Serialize.write(aos, messageQuery);
-        return mZmqFCoreSocket.send(aos.getWriteBuffer().array(), 0);
-    }
-
-
-    protected MessageReader receiveZmqMessage()
-            throws IOException
-    {
-        byte[] replyCapnp = mZmqFCoreSocket.recv(0);
-        ArrayInputStream ais = new ArrayInputStream(ByteBuffer.wrap(replyCapnp));
-        return Serialize.read(ais);
-
-        // mZmqFCoreSocket.close(); // we do not need close it
-        // zmqContext.term(); // NOT terminate it with ZMQ.existingContext !!!
-    }
-
-
-    protected MessageReader sendMessage(MessageBuilder messageQuery)
+    protected MessageReader fcoreSendMessage(MessageBuilder messageQuery)
             throws IOException
     {
         int sendBufferSize = (int) Serialize.computeSerializedSizeInWords(messageQuery) * 8;

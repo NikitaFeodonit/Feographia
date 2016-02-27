@@ -22,7 +22,6 @@
 package ru.feographia.fcore.message;
 
 import org.capnproto.AnyPointer;
-import org.zeromq.ZMQ;
 import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
 import ru.feographia.text.BibleReference;
@@ -40,11 +39,10 @@ public class GetFragmentTextMsg extends FcoreMsg
 
 
   public GetFragmentTextMsg(
-      ZMQ.Socket     zmqFCoreSocket,
       BibleReference fromReference,
       BibleReference toReference)
   {
-    super(zmqFCoreSocket);
+    super();
     mMsgType = FcConst.MSG_TYPE_GET_FRAGMENT_TEXT;
     mFromReference = fromReference;
     mToReference = toReference;

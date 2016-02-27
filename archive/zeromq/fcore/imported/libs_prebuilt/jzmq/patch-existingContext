@@ -1,0 +1,53 @@
+diff -Naur jzmq-old/src/main/c++/Context.cpp jzmq-new/src/main/c++/Context.cpp
+--- jzmq-old/src/main/c++/Context.cpp	2015-05-31 11:53:03.845933800 +0200
++++ jzmq-new/src/main/c++/Context.cpp	2015-06-02 06:04:35.925200900 +0200
+@@ -53,6 +53,19 @@
+ }
+ 
+ /**
++ * Called to construct a Java Context object from existing context.
++ */
++JNIEXPORT void JNICALL
++Java_org_zeromq_ZMQ_00024Context_constructExisting (JNIEnv *env, jobject obj, jlong contextPointer)
++{
++    void *c = get_context (env, obj);
++    if (c)
++        return;
++        
++    put_context (env, obj, (void*) contextPointer);
++}
++
++/**
+  * Called to destroy a Java Context object.
+  */
+ JNIEXPORT void JNICALL
+diff -Naur jzmq-old/src/main/java/org/zeromq/ZMQ.java jzmq-new/src/main/java/org/zeromq/ZMQ.java
+--- jzmq-old/src/main/java/org/zeromq/ZMQ.java	2015-05-31 11:53:03.851934100 +0200
++++ jzmq-new/src/main/java/org/zeromq/ZMQ.java	2015-06-02 06:04:35.922200700 +0200
+@@ -429,6 +430,10 @@
+         return new Context(ioThreads);
+     }
+ 
++    public static Context existingContext(long contextPointer) {
++        return new Context(contextPointer);
++    }
++
+     /**
+      * Inner class: Context.
+      */
+@@ -485,9 +490,15 @@
+             construct(ioThreads);
+         }
+ 
++        protected Context(long contextPointer) {
++            constructExisting(contextPointer);
++        }
++
+         /** Initialize the JNI interface */
+         protected native void construct(int ioThreads);
+ 
++        protected native void constructExisting(long contextPointer);
++
+         /** Free all resources used by JNI interface. */
+         protected native void destroy();
+ 

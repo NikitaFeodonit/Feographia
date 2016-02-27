@@ -1,0 +1,18 @@
+diff -Naur jzmq-old/configure.in jzmq-new/configure.in
+--- jzmq-old/configure.in	2015-05-31 11:53:03.842933600 +0200
++++ jzmq-new/configure.in	2015-06-02 06:22:17.567287400 +0200
+@@ -107,10 +107,10 @@
+ AC_SUBST(JAVAROOT)
+ 
+ # Checks for libraries.
+-AX_JNI_INCLUDE_DIR
+-for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
+-  CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR"
+-done
++#AX_JNI_INCLUDE_DIR
++#for JNI_INCLUDE_DIR in $JNI_INCLUDE_DIRS; do
++#  CPPFLAGS="$CPPFLAGS -I$JNI_INCLUDE_DIR"
++#done
+ AC_SUBST(CPPFLAGS)
+ 
+ # Checks for typedefs, structures, and compiler characteristics.

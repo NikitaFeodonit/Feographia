@@ -13,7 +13,6 @@
             <option value="$PROJECT_DIR$/Feographia" />
             <option value="$PROJECT_DIR$/capnproto-java" />
             <option value="$PROJECT_DIR$/fcore" />
-            <option value="$PROJECT_DIR$/jzmq" />
           </set>
         </option>
       </GradleProjectSettings>

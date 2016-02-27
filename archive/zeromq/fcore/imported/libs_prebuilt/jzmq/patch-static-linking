@@ -1,0 +1,46 @@
+diff -Naur jzmq-old/src/main/java/org/zeromq/EmbeddedLibraryTools.java jzmq-new/src/main/java/org/zeromq/EmbeddedLibraryTools.java
+--- jzmq-old/src/main/java/org/zeromq/EmbeddedLibraryTools.java	2015-05-31 11:53:03.848933900 +0200
++++ jzmq-new/src/main/java/org/zeromq/EmbeddedLibraryTools.java	2015-06-02 05:55:22.665874100 +0200
+@@ -16,10 +16,13 @@
+ 
+ public class EmbeddedLibraryTools {
+ 
+-    public static final boolean LOADED_EMBEDDED_LIBRARY;
++    // changed for static linking with jzmq
++    //public static final boolean LOADED_EMBEDDED_LIBRARY;
++    public static final boolean LOADED_EMBEDDED_LIBRARY = false;
+ 
+     static {
+-        LOADED_EMBEDDED_LIBRARY = loadEmbeddedLibrary();
++        // commented for static linking with jzmq
++        //LOADED_EMBEDDED_LIBRARY = loadEmbeddedLibrary();
+     }
+ 
+     public static String getCurrentPlatformIdentifier() {
+diff -Naur jzmq-old/src/main/java/org/zeromq/ZMQ.java jzmq-new/src/main/java/org/zeromq/ZMQ.java
+--- jzmq-old/src/main/java/org/zeromq/ZMQ.java	2015-05-31 11:53:03.851934100 +0200
++++ jzmq-new/src/main/java/org/zeromq/ZMQ.java	2015-06-02 06:04:35.922200700 +0200
+@@ -36,8 +36,9 @@
+ 
+     static {
+         // if no embedded native library, revert to loading from java.library.path
+-        if (!EmbeddedLibraryTools.LOADED_EMBEDDED_LIBRARY)
+-            System.loadLibrary("jzmq");
++        // commented for static linking with jzmq
++        //if (!EmbeddedLibraryTools.LOADED_EMBEDDED_LIBRARY)
++        //    System.loadLibrary("jzmq");
+     }
+ 
+     // Values for flags in Socket's send and recv functions.
+@@ -526,8 +537,9 @@
+         private static native void nativeInit();
+ 
+         static {
+-            if (!EmbeddedLibraryTools.LOADED_EMBEDDED_LIBRARY)
+-                System.loadLibrary("jzmq");
++            // commented for static linking with jzmq
++            //if (!EmbeddedLibraryTools.LOADED_EMBEDDED_LIBRARY)
++            //    System.loadLibrary("jzmq");
+             nativeInit();
+         }
+ 

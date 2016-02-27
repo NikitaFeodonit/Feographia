@@ -22,7 +22,6 @@
 package ru.feographia.fcore.message;
 
 import org.capnproto.AnyPointer;
-import org.zeromq.ZMQ;
 import ru.feographia.capnproto.FcConst;
 import ru.feographia.capnproto.FcMsg;
 
@@ -38,11 +37,9 @@ public class GetTestTextMsg
     protected String mTestText = null;
 
 
-    public GetTestTextMsg(
-            ZMQ.Socket zmqFCoreSocket,
-            String testPath)
+    public GetTestTextMsg(String testPath)
     {
-        super(zmqFCoreSocket);
+        super();
         mMsgType = FcConst.MSG_TYPE_GET_TEST_TEXT;
         mTestPath = testPath;
     }
