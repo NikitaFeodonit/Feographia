@@ -26,6 +26,7 @@ import ru.feographia.capnproto.FcConst;
 import ru.feographia.fcore.message.CreateTestModuleMsg;
 import ru.feographia.fcore.message.GetFileTextMsg;
 import ru.feographia.fcore.message.GetFragmentTextMsg;
+import ru.feographia.fcore.message.GetTestTextMsg;
 import ru.feographia.text.BibleReference;
 
 import java.io.IOException;
@@ -77,5 +78,12 @@ public final class Fcore
             throws IOException
     {
         return new GetFileTextMsg(mZmqFCoreSocket, filePath).getFileText();
+    }
+
+
+    public String getTestTextUtf16(String testPath)
+            throws IOException
+    {
+        return new GetTestTextMsg(mZmqFCoreSocket, testPath).getTestText();
     }
 }

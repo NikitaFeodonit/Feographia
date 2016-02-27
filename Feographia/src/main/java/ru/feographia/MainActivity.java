@@ -124,14 +124,26 @@ public class MainActivity
                         String path = "/sdcard/Feographia/modules/";
                         String text = getFragmentText(fcore);
 
-//                        String path = "/sdcard/Feographia/test_html/";
-//                        String text = getFileTextUtf16(fcore);
-
 //                        String path = "/sdcard/Feographia/modules/";
 //                        String text = createTestModule(fcore);
 
+// for test
+//                        String path = "/sdcard/Feographia/test_html/";
+//                        String text = getFileTextUtf16(fcore);
+
+//                        String path = "/sdcard/Feographia/test_html/";
+//                        String text = "<br>"+getTestTextUtf16(fcore);
+
+//                        String path = null;
+//                        String text = null;
+//                        for (int i = 0; i<100; ++i) {
+//                            path = "/sdcard/Feographia/test_html/";
+//                            text = getTestTextUtf16(fcore);
+//                        }
+
                         time = System.currentTimeMillis() - time;
                         Flog.d(TAG, "time: " + time);
+//                        Flog.d(TAG, "java byte size: " + text.getBytes().length);
 
                         // TODO: use widgets from
                         // android.support.v4.widget
@@ -273,6 +285,19 @@ public class MainActivity
             String path = "/sdcard/Feographia/test_html/";
             String filePath = path + "64-big.htm";
             return (fcore.getFileTextUtf16(filePath));
+        } catch (IOException e) {
+            Flog.d(TAG, e.getLocalizedMessage());
+            e.printStackTrace();
+            return (null);
+        }
+    }
+
+
+    public String getTestTextUtf16(Fcore fcore)
+    {
+        try {
+            String testPath = "/sdcard/Feographia/test_html/";
+            return (fcore.getTestTextUtf16(testPath));
         } catch (IOException e) {
             Flog.d(TAG, e.getLocalizedMessage());
             e.printStackTrace();

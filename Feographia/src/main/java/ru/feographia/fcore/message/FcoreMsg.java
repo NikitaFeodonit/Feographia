@@ -38,12 +38,15 @@ import java.nio.ByteOrder;
 
 public abstract class FcoreMsg
 {
-    protected static final int SEND_BUFFER_SIZE = 8192;
-
     protected static final String TAG = FcoreMsg.class.getName();
 
     protected ZMQ.Socket mZmqFCoreSocket;
     protected int        mMsgType;
+
+
+    private native static byte[] fcoreSendMessage(ByteBuffer segmentsQuery);
+
+    protected abstract void setDataQ(AnyPointer.Builder dataPtrQ);
 
 
     public FcoreMsg(ZMQ.Socket zmqFCoreSocket)
@@ -67,9 +70,45 @@ public abstract class FcoreMsg
         AnyPointer.Builder dataPtrQ = msgQ.initDataPointer();
         setDataQ(dataPtrQ);
 
+        // with ZeroMQ
+        // (100 iter)  [1000000 bytes] 7800 ms
+        // (1000 iter) [9 bytes]        460 ms
+        // (1 iter)    [1000000 bytes]   70 ms
+        // (1000 iter) [9 bytes]        1-2 ms
+
         // send query and receive reply
-        sendZmqMessage(cpnQuery);
-        MessageReader cpnReply = receiveZmqMessage();
+//        sendZmqMessage(cpnQuery);
+//        MessageReader cpnReply = receiveZmqMessage();
+
+        // without ZeroMQ
+        // (100 iter)  [1000000 bytes] 7400 ms
+        // (1000 iter) [9 bytes]        410 ms
+        // (1 iter) [1000000 bytes]      66 ms
+        // (1 iter) [9 bytes]           0-1 ms
+
+        // one copy operation add 450 ms for [1000000 bytes] with (100 iter)
+        // one copy operation add   8 ms for [1000000 bytes] with (1 iter)
+
+        // ZeroMQ add one copy operation
+
+
+        // without serialization, with shared memory (approximately)
+        // (100 iter)  [1000000 bytes]  6500 ms
+        // (1 iter)    [1000000 bytes]    50 ms
+
+        // without String's to utf16
+        // (100 iter)  [1000000 bytes]  2320 ms
+        // (100 iter)  [1000000 bytes]  2560 ms + one copy operation -- 240 ms
+
+        // (1 iter)    [1000000 bytes]    24 ms
+        // (1 iter)    [1000000 bytes]    27 ms + one copy operation --   3 ms
+
+        // (1 iter)   [10000000 bytes]   176 ms
+        // (1 iter)   [10000000 bytes]   206 ms + one copy operation --  30 ms
+
+
+        // send query and receive reply
+        MessageReader cpnReply = sendMessage(cpnQuery);
 
         // get the reply
         FcMsg.Message.Reader msgR = cpnReply.getRoot(FcMsg.Message.factory);
@@ -95,13 +134,15 @@ public abstract class FcoreMsg
     }
 
 
-    protected boolean sendZmqMessage(MessageBuilder messageBuilder)
+    protected boolean sendZmqMessage(MessageBuilder messageQuery)
             throws IOException
     {
-        ByteBuffer buffer = ByteBuffer.allocateDirect(SEND_BUFFER_SIZE);
+        int sendBufferSize = (int) Serialize.computeSerializedSizeInWords(messageQuery) * 8;
+        ByteBuffer buffer = ByteBuffer.allocateDirect(sendBufferSize);
+
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         ArrayOutputStream aos = new ArrayOutputStream(buffer);
-        Serialize.write(aos, messageBuilder);
+        Serialize.write(aos, messageQuery);
         return mZmqFCoreSocket.send(aos.getWriteBuffer().array(), 0);
     }
 
@@ -118,5 +159,19 @@ public abstract class FcoreMsg
     }
 
 
-    protected abstract void setDataQ(AnyPointer.Builder dataPtrQ);
+    protected MessageReader sendMessage(MessageBuilder messageQuery)
+            throws IOException
+    {
+        int sendBufferSize = (int) Serialize.computeSerializedSizeInWords(messageQuery) * 8;
+        ByteBuffer buffer = ByteBuffer.allocateDirect(sendBufferSize);
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        ArrayOutputStream aos = new ArrayOutputStream(buffer);
+        Serialize.write(aos, messageQuery);
+
+        ByteBuffer segmentsQuery = aos.getWriteBuffer();
+        ByteBuffer segmentsReply = ByteBuffer.wrap(fcoreSendMessage(segmentsQuery));
+
+        ArrayInputStream ais = new ArrayInputStream(segmentsReply);
+        return Serialize.read(ais);
+    }
 }
