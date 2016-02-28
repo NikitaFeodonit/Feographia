@@ -271,8 +271,8 @@ model {
         cppFlags.add("-std=c++11")
 
         cppFlags.add("-I" + "${getFcoreModuleDir()}/src")
-        cppFlags.add("-I" + "${getLibsDir()}/SQLiteCpp/src/include")
         cppFlags.add("-I" + "${getLibsDir()}/sqlite/src")
+        cppFlags.add("-I" + "${getLibsDir()}/SQLiteCpp/src/include")
         cppFlags.add("-I" + "${getLibsPrebuiltDir()}/capnproto-cpp/include")
 
         cppFlags.add("-I" + "${getBoostIncDir()}")

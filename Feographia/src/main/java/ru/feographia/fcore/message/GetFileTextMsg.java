@@ -56,9 +56,8 @@ public class GetFileTextMsg extends FcoreMsg
   protected AnyPointer.Reader msgWorker() throws IOException
   {
     // get the reply data
-    AnyPointer.Reader         dataPtrR = super.msgWorker();
+    AnyPointer.Reader dataPtrR = super.msgWorker();
     FcMsg.GetFileTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetFileTextR.factory);
-    // TODO: send utf16 text from C++ core
     mFileText = dataR.getFileText().toString();
     return (dataPtrR);
   }

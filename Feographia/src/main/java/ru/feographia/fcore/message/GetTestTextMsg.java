@@ -56,16 +56,9 @@ public class GetTestTextMsg extends FcoreMsg
   protected AnyPointer.Reader msgWorker() throws IOException
   {
     // get the reply data
-    AnyPointer.Reader         dataPtrR = super.msgWorker();
+    AnyPointer.Reader dataPtrR = super.msgWorker();
     FcMsg.GetTestTextR.Reader dataR = dataPtrR.getAs(FcMsg.GetTestTextR.factory);
-
-    // TODO: send utf16 text from C++ core
     mTestText = dataR.getTestText().toString();
-
-    // for test without String's conversion to UTF-16
-//        org.capnproto.Text.Reader r = dataR.getTestText();
-//        mTestText = "";
-
     return (dataPtrR);
   }  /* msgWorker */
 
