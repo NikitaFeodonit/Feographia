@@ -231,6 +231,14 @@ def getLinkType()
 
 
 model {
+    android.sources {
+        main {
+            jni.source {
+                exclude "**/pcre2_jit_m*.c"
+            }
+        }
+    }
+
     android.ndk {
         moduleName = "fcore"
 
@@ -258,8 +266,13 @@ model {
 
 //  ===  CFlags  ===
 
+        CFlags.add("-DHAVE_CONFIG_H")
+        CFlags.add("-DPCRE2_CODE_UNIT_WIDTH=8")
+        CFlags.add("-I" + "${getLibsDir()}/pcre2/src")
+
         CFlags.add("-DSQLITE_THREADSAFE=2")
         CFlags.add("-I" + "${getLibsDir()}/sqlite/src")
+
         CFlags.add("-I" + "${getCrystaxIncDir()}")
 
 //  ===  cppFlags  ===
@@ -271,8 +284,13 @@ model {
         cppFlags.add("-std=c++11")
 
         cppFlags.add("-I" + "${getFcoreModuleDir()}/src")
+
+        cppFlags.add("-I" + "${getLibsDir()}/pcre2/src")
+        cppFlags.add("-I" + "${getLibsDir()}/jpcre2/src")
+
         cppFlags.add("-I" + "${getLibsDir()}/sqlite/src")
         cppFlags.add("-I" + "${getLibsDir()}/SQLiteCpp/src/include")
+
         cppFlags.add("-I" + "${getLibsPrebuiltDir()}/capnproto-cpp/include")
 
         cppFlags.add("-I" + "${getBoostIncDir()}")
