@@ -1,7 +1,7 @@
 #
 # Project:  Feographia
 # Purpose:  Mobile application to work with the biblical text
-# Authors:  NikitaFeodonit, nfeodonit@yandex.com
+# Author:   NikitaFeodonit, nfeodonit@yandex.com
 # ****************************************************************************
 # Copyright (C) 2015-2016 NikitaFeodonit
 #
