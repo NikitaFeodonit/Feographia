@@ -46,7 +46,8 @@ import java.io.IOException;
  *
  * @see SystemUiHider
  */
-public class MainActivity extends Activity
+public class MainActivity
+    extends Activity
 {
   protected static final String TAG = MainActivity.class.getName();
 
@@ -59,15 +60,15 @@ public class MainActivity extends Activity
 
 
   /**
-   * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after user interaction
-   * before hiding the system UI.
+   * If {@link #AUTO_HIDE} is set, the number of milliseconds to wait after user interaction before
+   * hiding the system UI.
    */
   private static final int AUTO_HIDE_DELAY_MILLIS = 3000;
 
 
   /**
-   * If set, will toggle the system UI visibility upon interaction. Otherwise, will show the
-   * system UI visibility upon interaction.
+   * If set, will toggle the system UI visibility upon interaction. Otherwise, will show the system
+   * UI visibility upon interaction.
    */
   private static final boolean TOGGLE_ON_CLICK = true;
 
@@ -84,131 +85,136 @@ public class MainActivity extends Activity
   private SystemUiHider mSystemUiHider;
 
 
-  @SuppressLint ("SetJavaScriptEnabled")
+  @SuppressLint("SetJavaScriptEnabled")
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
 
-    final Fapp  app = (Fapp) getApplication();
+    final Fapp app = (Fapp) getApplication();
     final Fcore fcore = app.getFcore();
 
     setContentView(R.layout.activity_main);
 
-    final View    controlsView = findViewById(R.id.fullscreen_content_controls);
+    final View controlsView = findViewById(R.id.fullscreen_content_controls);
     final WebView webView = (WebView) findViewById(R.id.web_view);
-    final Button  btnLoadFile = (Button) findViewById(R.id.btn_load_file);
+    final Button btnLoadFile = (Button) findViewById(R.id.btn_load_file);
 
     WebSettings settings = webView.getSettings();
     settings.setDefaultTextEncodingName("utf-8");
     webView.getSettings().setJavaScriptEnabled(true);
-    webView.setWebViewClient(new WebViewClient()
-    {
-      @Override
-      public boolean shouldOverrideUrlLoading(WebView view, String url)
-      {
-        view.loadUrl(url);
-        return (true);
-      }
-    });
+    webView.setWebViewClient(
+        new WebViewClient()
+        {
+          @Override
+          public boolean shouldOverrideUrlLoading(
+              WebView view,
+              String url)
+          {
+            view.loadUrl(url);
+            return (true);
+          }
+        });
 
-    btnLoadFile.setOnClickListener(new View.OnClickListener()
-    {
-      @Override
-      public void onClick(View v)
-      {
-        long time = System.currentTimeMillis();
+    btnLoadFile.setOnClickListener(
+        new View.OnClickListener()
+        {
+          @Override
+          public void onClick(View v)
+          {
+            long time = System.currentTimeMillis();
 
-        String path = "/sdcard/Feographia/modules/";
-        String text = getFragmentText(fcore);
+            String path = "/sdcard/Feographia/modules/";
+            String text = getFragmentText(fcore);
 
-//                        String path = "/sdcard/Feographia/modules/";
-//                        String text = createTestModule(fcore);
+//            String path = "/sdcard/Feographia/modules/";
+//            String text = createTestModule(fcore);
 
 // for test
-//                        String path = "/sdcard/Feographia/test_html/";
-//                        String text = getFileTextUtf16(fcore);
+//            String path = "/sdcard/Feographia/test_html/";
+//            String text = getFileTextUtf16(fcore);
 
-//                        String path = "/sdcard/Feographia/test_html/";
-//                        String text = "<br>"+getTestTextUtf16(fcore);
+//            String path = "/sdcard/Feographia/test_html/";
+//            String text = "<br>" + getTestTextUtf16(fcore);
 
-//                        String path = null;
-//                        String text = null;
-//                        for (int i = 0; i<100; ++i) {
-//                            path = "/sdcard/Feographia/test_html/";
-//                            text = getTestTextUtf16(fcore);
-//                        }
+//            String path = null;
+//            String text = null;
+//            for (int i = 0; i < 100; ++i) {
+//              path = "/sdcard/Feographia/test_html/";
+//              text = getTestTextUtf16(fcore);
+//            }
 
-        time = System.currentTimeMillis() - time;
-        Flog.d(TAG, "time: " + time);
+            time = System.currentTimeMillis() - time;
+            Flog.d(TAG, "time: " + time);
 //                        Flog.d(TAG, "java byte size: " + text.getBytes().length);
 
-        // TODO: use widgets from
-        // android.support.v4.widget
-        // android.support.v7.widget
+            // TODO: use widgets from
+            // android.support.v4.widget
+            // android.support.v7.widget
 
-        webView.loadDataWithBaseURL("file://" + path, text, "text/html", "UTF-8", "about:config");
-      }
-    });
+            webView.loadDataWithBaseURL(
+                "file://" + path, text, "text/html", "UTF-8", "about:config");
+          }
+        });
 
 
     // Set up an instance of SystemUiHider to control the system UI for
     // this activity.
     mSystemUiHider = SystemUiHider.getInstance(this, webView, HIDER_FLAGS);
     mSystemUiHider.setup();
-    mSystemUiHider.setOnVisibilityChangeListener(new SystemUiHider.OnVisibilityChangeListener()
-    {
-      // Cached values.
-      int mControlsHeight;
-      int mShortAnimTime;
+    mSystemUiHider.setOnVisibilityChangeListener(
+        new SystemUiHider.OnVisibilityChangeListener()
+        {
+          // Cached values.
+          int mControlsHeight;
+          int mShortAnimTime;
 
 
-      @Override
-      @TargetApi (Build.VERSION_CODES.HONEYCOMB_MR2)
-      public void onVisibilityChange(boolean visible)
-      {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-          // If the ViewPropertyAnimator API is available
-          // (Honeycomb MR2 and later), use it to animate the
-          // in-layout UI controls at the bottom of the
-          // screen.
-          if (mControlsHeight == 0) {
-            mControlsHeight = controlsView.getHeight();
+          @Override
+          @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+          public void onVisibilityChange(boolean visible)
+          {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+              // If the ViewPropertyAnimator API is available
+              // (Honeycomb MR2 and later), use it to animate the
+              // in-layout UI controls at the bottom of the
+              // screen.
+              if (mControlsHeight == 0) {
+                mControlsHeight = controlsView.getHeight();
+              }
+              if (mShortAnimTime == 0) {
+                mShortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+              }
+              controlsView.animate().translationY(visible ? 0 : mControlsHeight).setDuration(
+                  mShortAnimTime);
+            } else {
+              // If the ViewPropertyAnimator APIs aren't
+              // available, simply show or hide the in-layout UI
+              // controls.
+              controlsView.setVisibility(visible ? View.VISIBLE : View.GONE);
+            }
+
+            if (visible && AUTO_HIDE) {
+              // Schedule a hide().
+              delayedHide(AUTO_HIDE_DELAY_MILLIS);
+            }
           }
-          if (mShortAnimTime == 0) {
-            mShortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
-          }
-          controlsView.animate().translationY(visible ? 0 : mControlsHeight).setDuration(
-          mShortAnimTime);
-        }
-        else {
-          // If the ViewPropertyAnimator APIs aren't
-          // available, simply show or hide the in-layout UI
-          // controls.
-          controlsView.setVisibility(visible ? View.VISIBLE : View.GONE);
-        }
-
-        if (visible && AUTO_HIDE) {
-          // Schedule a hide().
-          delayedHide(AUTO_HIDE_DELAY_MILLIS);
-        }
-      }
-    });
+        });
 
     // Set up the user interaction to manually show or hide the system UI.
-    webView.setOnClickListener(new View.OnClickListener()
-    {
-      @Override
-      public void onClick(View view)
-      {
-        if (TOGGLE_ON_CLICK) {
-          mSystemUiHider.toggle();
-        }
-        else {
-          mSystemUiHider.show();
-        }
-      }
-    });
+    webView.setOnClickListener(
+        new View.OnClickListener()
+        {
+          @Override
+          public void onClick(View view)
+          {
+            if (TOGGLE_ON_CLICK) {
+              mSystemUiHider.toggle();
+            } else {
+              mSystemUiHider.show();
+            }
+          }
+        });
 
     // Upon interacting with UI controls, delay any scheduled hide()
     // operations to prevent the jarring behavior of controls going away
@@ -222,7 +228,7 @@ public class MainActivity extends Activity
     try {
       BibleReference fromReference = new BibleReference("Rom", (byte) 4, (byte) 24, (byte) 0);
       BibleReference toReference = new BibleReference("Rom", (byte) 5, (byte) 3, (byte) 0);
-      String         fragmentText = fcore.getFragmentText(fromReference, toReference);
+      String fragmentText = fcore.getFragmentText(fromReference, toReference);
 
 //            Flog.d(TAG, "fragmentText: " + fragmentText);
 
@@ -239,8 +245,7 @@ public class MainActivity extends Activity
       html.append("</html>");
 
       return (html.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Flog.d(TAG, e.getLocalizedMessage());
       e.printStackTrace();
       return (null);
@@ -267,8 +272,7 @@ public class MainActivity extends Activity
       html.append("</html>");
 
       return (html.toString());
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Flog.d(TAG, e.getLocalizedMessage());
       e.printStackTrace();
       return (null);
@@ -282,8 +286,7 @@ public class MainActivity extends Activity
       String path = "/sdcard/Feographia/test_html/";
       String filePath = path + "64-big.htm";
       return (fcore.getFileTextUtf16(filePath));
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Flog.d(TAG, e.getLocalizedMessage());
       e.printStackTrace();
       return (null);
@@ -296,8 +299,7 @@ public class MainActivity extends Activity
     try {
       String testPath = "/sdcard/Feographia/test_html/";
       return (fcore.getTestTextUtf16(testPath));
-    }
-    catch (IOException e) {
+    } catch (IOException e) {
       Flog.d(TAG, e.getLocalizedMessage());
       e.printStackTrace();
       return (null);
@@ -325,7 +327,7 @@ public class MainActivity extends Activity
   {
     @Override
     public boolean onTouch(
-        View        view,
+        View view,
         MotionEvent motionEvent)
     {
       if (AUTO_HIDE) {
@@ -347,8 +349,7 @@ public class MainActivity extends Activity
 
 
   /**
-   * Schedules a call to hide() in [delay] milliseconds, canceling any previously scheduled
-   * calls.
+   * Schedules a call to hide() in [delay] milliseconds, canceling any previously scheduled calls.
    */
 
   private void delayedHide(int delayMillis)
